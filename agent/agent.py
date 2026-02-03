@@ -10,7 +10,7 @@ from agent.tools.visualize import visualize
 
 def create_agent(dataset_info: str) -> Agent[AgentContext]:
     """Create the data analysis agent with query and visualization tools."""
-    model = os.getenv("MODEL", "mistral:mistral-small-latest")
+    model = os.getenv("MODEL", "mistral:magistral-small-latest")
 
     agent: Agent[AgentContext] = Agent(
         model=model,
