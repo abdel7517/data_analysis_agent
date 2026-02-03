@@ -9,6 +9,7 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/collapsible'
 import { cn } from '@/lib/utils'
+import { ArgsDisplay } from './ArgsDisplay'
 
 interface ToolCallBlockProps {
   name: string
@@ -58,9 +59,7 @@ export function ToolCallBlock({ name, args, result, status }: ToolCallBlockProps
               Arguments
             </CollapsibleTrigger>
             <CollapsibleContent>
-              <pre className="mt-1.5 rounded-md bg-muted px-3 py-2 text-xs font-mono overflow-x-auto">
-                {JSON.stringify(args, null, 2)}
-              </pre>
+              <ArgsDisplay args={args} />
             </CollapsibleContent>
           </Collapsible>
         )}
