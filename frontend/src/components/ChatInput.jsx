@@ -34,7 +34,7 @@ export function ChatInput({ onSend, disabled }) {
 
   return (
     <div className="border-t bg-background px-4 py-3">
-      <div className="mx-auto max-w-3xl flex gap-2 items-end">
+      <div className="mx-auto max-w-5xl flex gap-2 items-end">
         <Textarea
           ref={textareaRef}
           value={value}
