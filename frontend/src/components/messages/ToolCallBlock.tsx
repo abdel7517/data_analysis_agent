@@ -19,6 +19,7 @@ interface ToolCallBlockProps {
 
 export function ToolCallBlock({ name, args, result, status }: ToolCallBlockProps) {
   const [showArgs, setShowArgs] = useState(false)
+  const [showResult, setShowResult] = useState(false)
   const isRunning = status === 'running'
 
   return (
@@ -64,16 +65,24 @@ export function ToolCallBlock({ name, args, result, status }: ToolCallBlockProps
           </Collapsible>
         )}
 
-        {/* Résultat */}
+        {/* Résultat (collapsible) */}
         {result && (
-          <div className="space-y-1">
-            <span className="text-xs font-medium text-muted-foreground">
+          <Collapsible open={showResult} onOpenChange={setShowResult}>
+            <CollapsibleTrigger className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors">
+              <ChevronRight
+                className={cn(
+                  'h-3 w-3 transition-transform duration-200',
+                  showResult && 'rotate-90'
+                )}
+              />
               Resultat
-            </span>
-            <pre className="rounded-md bg-muted px-3 py-2 text-xs font-mono whitespace-pre-wrap overflow-x-auto max-h-40 overflow-y-auto">
-              {result}
-            </pre>
-          </div>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <pre className="mt-1.5 rounded-md bg-muted px-3 py-2 text-xs font-mono whitespace-pre-wrap overflow-x-auto max-h-40 overflow-y-auto">
+                {result}
+              </pre>
+            </CollapsibleContent>
+          </Collapsible>
         )}
       </CardContent>
     </Card>
