@@ -92,7 +92,7 @@ export function ChatPage() {
 
       {/* Zone des messages */}
       <div className="flex-1 overflow-hidden">
-        <div className="h-full max-w-3xl mx-auto">
+        <div className="h-full max-w-3xl mx-auto flex flex-col">
           {messages.length === 0 && !isLoading ? (
             <div className="h-full flex items-center justify-center">
               <Empty>
