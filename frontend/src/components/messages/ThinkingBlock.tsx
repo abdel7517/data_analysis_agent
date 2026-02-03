@@ -1,4 +1,6 @@
 import { useState } from 'react'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 import { Brain, ChevronRight } from 'lucide-react'
 import {
   Collapsible,
@@ -31,8 +33,29 @@ export function ThinkingBlock({ content, isStreaming = false }: ThinkingBlockPro
         )}
       </CollapsibleTrigger>
       <CollapsibleContent>
-        <div className="ml-7 mt-1 rounded-md border border-dashed border-muted-foreground/25 bg-muted/30 px-3 py-2 text-xs font-mono text-muted-foreground whitespace-pre-wrap leading-relaxed">
-          {content}
+        <div className="ml-7 mt-1 rounded-md border border-dashed border-muted-foreground/25 bg-muted/30 px-3 py-2 text-xs text-muted-foreground leading-relaxed prose prose-sm dark:prose-invert max-w-none">
+          <ReactMarkdown
+            remarkPlugins={[remarkGfm]}
+            components={{
+              pre: ({ children }) => (
+                <pre className="rounded-md border bg-muted p-3 overflow-x-auto text-foreground">
+                  {children}
+                </pre>
+              ),
+              code: ({ children, className }) => {
+                const isBlock = Boolean(className)
+                return isBlock ? (
+                  <code className={cn('text-xs', className)}>{children}</code>
+                ) : (
+                  <code className="rounded bg-muted px-1.5 py-0.5 text-foreground font-mono text-[0.85em]">
+                    {children}
+                  </code>
+                )
+              },
+            }}
+          >
+            {content}
+          </ReactMarkdown>
         </div>
       </CollapsibleContent>
     </Collapsible>
