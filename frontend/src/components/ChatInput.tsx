@@ -3,29 +3,32 @@ import { Send } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 
-export function ChatInput({ onSend, disabled }) {
+interface ChatInputProps {
+  onSend: (text: string) => void
+  disabled: boolean
+}
+
+export function ChatInput({ onSend, disabled }: ChatInputProps) {
   const [value, setValue] = useState('')
-  const textareaRef = useRef(null)
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
 
   const handleSubmit = useCallback(() => {
     if (!value.trim() || disabled) return
     onSend(value)
     setValue('')
-    // Reset textarea height
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto'
     }
   }, [value, disabled, onSend])
 
-  const handleKeyDown = (e) => {
+  const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
       handleSubmit()
     }
   }
 
-  // Auto-resize textarea
-  const handleChange = (e) => {
+  const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setValue(e.target.value)
     const el = e.target
     el.style.height = 'auto'

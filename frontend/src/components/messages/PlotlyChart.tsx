@@ -1,10 +1,17 @@
 import { useMemo } from 'react'
+// @ts-expect-error - no types for react-plotly.js/factory
 import createPlotlyComponent from 'react-plotly.js/factory'
+// @ts-expect-error - no types for plotly.js-dist-min
 import Plotly from 'plotly.js-dist-min'
+import type { PlotlyJSON } from '@/types/chat'
 
 const Plot = createPlotlyComponent(Plotly)
 
-export function PlotlyChart({ json }) {
+interface PlotlyChartProps {
+  json: PlotlyJSON | string
+}
+
+export function PlotlyChart({ json }: PlotlyChartProps) {
   const { data, layout } = useMemo(() => {
     const parsed = typeof json === 'string' ? JSON.parse(json) : json
     return {

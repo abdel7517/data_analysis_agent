@@ -2,7 +2,12 @@ import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { cn } from '@/lib/utils'
 
-export function StreamingText({ content, isStreaming = false }) {
+interface StreamingTextProps {
+  content: string
+  isStreaming?: boolean
+}
+
+export function StreamingText({ content, isStreaming = false }: StreamingTextProps) {
   return (
     <div className="prose prose-sm dark:prose-invert max-w-none text-sm leading-relaxed">
       <ReactMarkdown remarkPlugins={[remarkGfm]}>

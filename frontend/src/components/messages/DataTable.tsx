@@ -8,9 +8,14 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { ScrollArea } from '@/components/ui/scroll-area'
+import type { DataTableJSON } from '@/types/chat'
 
-export function DataTable({ json }) {
-  const { columns, rows } = useMemo(() => {
+interface DataTableProps {
+  json: DataTableJSON | string
+}
+
+export function DataTable({ json }: DataTableProps) {
+  const { columns, rows } = useMemo<{ columns: string[]; rows: (string | number | null)[][] }>(() => {
     const parsed = typeof json === 'string' ? JSON.parse(json) : json
     return {
       columns: parsed.columns || [],
@@ -22,7 +27,7 @@ export function DataTable({ json }) {
 
   return (
     <div className="w-full rounded-lg border">
-      <ScrollArea className="w-full" orientation="horizontal">
+      <ScrollArea className="w-full">
         <div className="max-h-[400px] overflow-y-auto">
           <Table>
             <TableHeader className="sticky top-0 bg-muted/80 backdrop-blur-sm z-10">

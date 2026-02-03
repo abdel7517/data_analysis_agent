@@ -7,7 +7,12 @@ import {
 } from '@/components/ui/collapsible'
 import { cn } from '@/lib/utils'
 
-export function ThinkingBlock({ content, isStreaming = false }) {
+interface ThinkingBlockProps {
+  content: string
+  isStreaming?: boolean
+}
+
+export function ThinkingBlock({ content, isStreaming = false }: ThinkingBlockProps) {
   const [isOpen, setIsOpen] = useState(isStreaming)
 
   return (

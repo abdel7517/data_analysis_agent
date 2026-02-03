@@ -10,7 +10,14 @@ import {
 } from '@/components/ui/collapsible'
 import { cn } from '@/lib/utils'
 
-export function ToolCallBlock({ name, args, result, status }) {
+interface ToolCallBlockProps {
+  name: string
+  args: Record<string, unknown>
+  result: string | null
+  status: 'running' | 'done'
+}
+
+export function ToolCallBlock({ name, args, result, status }: ToolCallBlockProps) {
   const [showArgs, setShowArgs] = useState(false)
   const isRunning = status === 'running'
 

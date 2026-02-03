@@ -6,8 +6,20 @@ import { ToolCallBlock } from './ToolCallBlock'
 import { PlotlyChart } from './PlotlyChart'
 import { DataTable } from './DataTable'
 import { StreamingText } from './StreamingText'
+import type { Block } from '@/types/chat'
 
-function BlockRenderer({ block, isLastBlock, isStreaming }) {
+interface BlockRendererProps {
+  block: Block
+  isLastBlock: boolean
+  isStreaming: boolean
+}
+
+interface AssistantMessageProps {
+  blocks: Block[]
+  isStreaming?: boolean
+}
+
+function BlockRenderer({ block, isLastBlock, isStreaming }: BlockRendererProps) {
   switch (block.type) {
     case 'thinking':
       return (
@@ -54,7 +66,7 @@ function BlockRenderer({ block, isLastBlock, isStreaming }) {
   }
 }
 
-export function AssistantMessage({ blocks, isStreaming = false }) {
+export function AssistantMessage({ blocks, isStreaming = false }: AssistantMessageProps) {
   return (
     <div className="flex gap-3">
       <Avatar className="h-8 w-8 flex-shrink-0 mt-1">

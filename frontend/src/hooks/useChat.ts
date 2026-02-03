@@ -1,30 +1,22 @@
 import { useState, useRef, useCallback } from 'react'
 import { useSSE } from './useSSE'
+import type { Block, BlockWithoutId, Message, SSEEvent } from '@/types/chat'
 
 let blockIdCounter = 0
 const nextBlockId = () => `block-${++blockIdCounter}`
 let messageIdCounter = 0
 const nextMessageId = () => `msg-${++messageIdCounter}`
 
-/**
- * Hook centralisant la logique du chat :
- * - Accumulation des événements SSE en blocs typés
- * - Gestion des messages (user + assistant)
- * - Envoi de messages via POST /api/chat
- *
- * @param {string} email - Email de l'utilisateur (canal SSE)
- * @returns {{ messages, streamingBlocks, isLoading, sendMessage }}
- */
-export function useChat(email) {
-  const [messages, setMessages] = useState([])
-  const [streamingBlocks, setStreamingBlocks] = useState([])
+export function useChat(email: string) {
+  const [messages, setMessages] = useState<Message[]>([])
+  const [streamingBlocks, setStreamingBlocks] = useState<Block[]>([])
   const [isLoading, setIsLoading] = useState(false)
 
-  const blocksRef = useRef([])
+  const blocksRef = useRef<Block[]>([])
 
   // --- Helpers d'accumulation ---
 
-  const getLastBlock = () => {
+  const getLastBlock = (): Block | null => {
     const blocks = blocksRef.current
     return blocks.length > 0 ? blocks[blocks.length - 1] : null
   }
@@ -33,12 +25,12 @@ export function useChat(email) {
     setStreamingBlocks([...blocksRef.current])
   }
 
-  const addBlock = (block) => {
-    blocksRef.current = [...blocksRef.current, { ...block, id: nextBlockId() }]
+  const addBlock = (block: BlockWithoutId) => {
+    blocksRef.current = [...blocksRef.current, { ...block, id: nextBlockId() } as Block]
     updateBlocks()
   }
 
-  const updateLastBlock = (updater) => {
+  const updateLastBlock = (updater: (block: Block) => Block) => {
     const blocks = blocksRef.current
     if (blocks.length === 0) return
     const last = blocks[blocks.length - 1]
@@ -53,14 +45,14 @@ export function useChat(email) {
     )
     if (idx !== -1) {
       const updated = [...blocks]
-      updated[idx] = { ...updated[idx], status: 'done' }
+      updated[idx] = { ...updated[idx], status: 'done' } as Block
       blocksRef.current = updated
     }
   }
 
   // --- Gestionnaire SSE ---
 
-  const handleSSEMessage = useCallback((data) => {
+  const handleSSEMessage = useCallback((data: SSEEvent) => {
     if (!data.type) return
 
     switch (data.type) {
@@ -69,10 +61,10 @@ export function useChat(email) {
         if (last && last.type === 'thinking') {
           updateLastBlock((b) => ({
             ...b,
-            content: b.content + data.data.content,
+            content: (b as { content: string }).content + (data.data.content as string),
           }))
         } else {
-          addBlock({ type: 'thinking', content: data.data.content })
+          addBlock({ type: 'thinking', content: data.data.content as string })
         }
         break
       }
@@ -82,10 +74,10 @@ export function useChat(email) {
         if (last && last.type === 'text') {
           updateLastBlock((b) => ({
             ...b,
-            content: b.content + data.data.content,
+            content: (b as { content: string }).content + (data.data.content as string),
           }))
         } else {
-          addBlock({ type: 'text', content: data.data.content })
+          addBlock({ type: 'text', content: data.data.content as string })
         }
         break
       }
@@ -93,8 +85,8 @@ export function useChat(email) {
       case 'tool_call_start': {
         addBlock({
           type: 'tool_call',
-          name: data.data.name,
-          args: data.data.args,
+          name: data.data.name as string,
+          args: data.data.args as Record<string, unknown>,
           result: null,
           status: 'running',
         })
@@ -102,7 +94,6 @@ export function useChat(email) {
       }
 
       case 'tool_call_result': {
-        // Trouver le dernier tool_call running et y mettre le résultat
         const blocks = blocksRef.current
         const idx = blocks.findLastIndex(
           (b) => b.type === 'tool_call' && b.status === 'running'
@@ -111,9 +102,9 @@ export function useChat(email) {
           const updated = [...blocks]
           updated[idx] = {
             ...updated[idx],
-            result: data.data.result,
+            result: data.data.result as string,
             status: 'done',
-          }
+          } as Block
           blocksRef.current = updated
           updateBlocks()
         }
@@ -122,13 +113,13 @@ export function useChat(email) {
 
       case 'plotly': {
         markLastToolCallDone()
-        addBlock({ type: 'plotly', json: data.data.json })
+        addBlock({ type: 'plotly', json: data.data.json as string })
         break
       }
 
       case 'data_table': {
         markLastToolCallDone()
-        addBlock({ type: 'data_table', json: data.data.json })
+        addBlock({ type: 'data_table', json: data.data.json as string })
         break
       }
 
@@ -137,7 +128,7 @@ export function useChat(email) {
         if (finalBlocks.length > 0) {
           setMessages((prev) => [
             ...prev,
-            { id: nextMessageId(), role: 'assistant', blocks: finalBlocks },
+            { id: nextMessageId(), role: 'assistant' as const, blocks: finalBlocks },
           ])
         }
         blocksRef.current = []
@@ -147,11 +138,11 @@ export function useChat(email) {
       }
 
       case 'error': {
-        addBlock({ type: 'error', message: data.data.message })
+        addBlock({ type: 'error', message: data.data.message as string })
         const finalBlocks = [...blocksRef.current]
         setMessages((prev) => [
           ...prev,
-          { id: nextMessageId(), role: 'assistant', blocks: finalBlocks },
+          { id: nextMessageId(), role: 'assistant' as const, blocks: finalBlocks },
         ])
         blocksRef.current = []
         setStreamingBlocks([])
@@ -166,12 +157,12 @@ export function useChat(email) {
   // --- Envoi de message ---
 
   const sendMessage = useCallback(
-    async (text) => {
+    async (text: string) => {
       if (!text.trim() || isLoading || !email) return
 
       setMessages((prev) => [
         ...prev,
-        { id: nextMessageId(), role: 'user', content: text.trim() },
+        { id: nextMessageId(), role: 'user' as const, content: text.trim() },
       ])
       setIsLoading(true)
       blocksRef.current = []
@@ -192,9 +183,9 @@ export function useChat(email) {
           ...prev,
           {
             id: nextMessageId(),
-            role: 'assistant',
+            role: 'assistant' as const,
             blocks: [
-              { id: nextBlockId(), type: 'error', message: 'Erreur de connexion au serveur.' },
+              { id: nextBlockId(), type: 'error' as const, message: 'Erreur de connexion au serveur.' },
             ],
           },
         ])

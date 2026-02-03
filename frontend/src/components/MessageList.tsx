@@ -5,6 +5,13 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Bot } from 'lucide-react'
+import type { Message, Block } from '@/types/chat'
+
+interface MessageListProps {
+  messages: Message[]
+  streamingBlocks: Block[]
+  isLoading: boolean
+}
 
 function TypingIndicator() {
   return (
@@ -22,8 +29,8 @@ function TypingIndicator() {
   )
 }
 
-export function MessageList({ messages, streamingBlocks, isLoading }) {
-  const endRef = useRef(null)
+export function MessageList({ messages, streamingBlocks, isLoading }: MessageListProps) {
+  const endRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: 'smooth' })
