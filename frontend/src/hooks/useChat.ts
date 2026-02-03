@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback } from 'react'
 import { useSSE } from './useSSE'
+import { SSEEventType, BlockType, ToolCallStatus } from '@/types/chat'
 import type { Block, BlockWithoutId, Message, SSEEvent } from '@/types/chat'
 
 let blockIdCounter = 0
@@ -41,11 +42,11 @@ export function useChat(email: string) {
   const markLastToolCallDone = () => {
     const blocks = blocksRef.current
     const idx = blocks.findLastIndex(
-      (b) => b.type === 'tool_call' && b.status === 'running'
+      (b) => b.type === BlockType.TOOL_CALL && b.status === ToolCallStatus.RUNNING
     )
     if (idx !== -1) {
       const updated = [...blocks]
-      updated[idx] = { ...updated[idx], status: 'done' } as Block
+      updated[idx] = { ...updated[idx], status: ToolCallStatus.DONE } as Block
       blocksRef.current = updated
     }
   }
@@ -56,54 +57,54 @@ export function useChat(email: string) {
     if (!data.type) return
 
     switch (data.type) {
-      case 'thinking': {
+      case SSEEventType.THINKING: {
         const last = getLastBlock()
-        if (last && last.type === 'thinking') {
+        if (last && last.type === BlockType.THINKING) {
           updateLastBlock((b) => ({
             ...b,
             content: (b as { content: string }).content + (data.data.content as string),
           }))
         } else {
-          addBlock({ type: 'thinking', content: data.data.content as string })
+          addBlock({ type: BlockType.THINKING, content: data.data.content as string })
         }
         break
       }
 
-      case 'text': {
+      case SSEEventType.TEXT: {
         const last = getLastBlock()
-        if (last && last.type === 'text') {
+        if (last && last.type === BlockType.TEXT) {
           updateLastBlock((b) => ({
             ...b,
             content: (b as { content: string }).content + (data.data.content as string),
           }))
         } else {
-          addBlock({ type: 'text', content: data.data.content as string })
+          addBlock({ type: BlockType.TEXT, content: data.data.content as string })
         }
         break
       }
 
-      case 'tool_call_start': {
+      case SSEEventType.TOOL_CALL_START: {
         addBlock({
-          type: 'tool_call',
+          type: BlockType.TOOL_CALL,
           name: data.data.name as string,
           args: data.data.args as Record<string, unknown>,
           result: null,
-          status: 'running',
+          status: ToolCallStatus.RUNNING,
         })
         break
       }
 
-      case 'tool_call_result': {
+      case SSEEventType.TOOL_CALL_RESULT: {
         const blocks = blocksRef.current
         const idx = blocks.findLastIndex(
-          (b) => b.type === 'tool_call' && b.status === 'running'
+          (b) => b.type === BlockType.TOOL_CALL && b.status === ToolCallStatus.RUNNING
         )
         if (idx !== -1) {
           const updated = [...blocks]
           updated[idx] = {
             ...updated[idx],
             result: data.data.result as string,
-            status: 'done',
+            status: ToolCallStatus.DONE,
           } as Block
           blocksRef.current = updated
           updateBlocks()
@@ -111,19 +112,19 @@ export function useChat(email: string) {
         break
       }
 
-      case 'plotly': {
+      case SSEEventType.PLOTLY: {
         markLastToolCallDone()
-        addBlock({ type: 'plotly', json: data.data.json as string })
+        addBlock({ type: BlockType.PLOTLY, json: data.data.json as string })
         break
       }
 
-      case 'data_table': {
+      case SSEEventType.DATA_TABLE: {
         markLastToolCallDone()
-        addBlock({ type: 'data_table', json: data.data.json as string })
+        addBlock({ type: BlockType.DATA_TABLE, json: data.data.json as string })
         break
       }
 
-      case 'done': {
+      case SSEEventType.DONE: {
         const finalBlocks = [...blocksRef.current]
         if (finalBlocks.length > 0) {
           setMessages((prev) => [
@@ -137,8 +138,8 @@ export function useChat(email: string) {
         break
       }
 
-      case 'error': {
-        addBlock({ type: 'error', message: data.data.message as string })
+      case SSEEventType.ERROR: {
+        addBlock({ type: BlockType.ERROR, message: data.data.message as string })
         const finalBlocks = [...blocksRef.current]
         setMessages((prev) => [
           ...prev,
@@ -185,7 +186,7 @@ export function useChat(email: string) {
             id: nextMessageId(),
             role: 'assistant' as const,
             blocks: [
-              { id: nextBlockId(), type: 'error' as const, message: 'Erreur de connexion au serveur.' },
+              { id: nextBlockId(), type: BlockType.ERROR, message: 'Erreur de connexion au serveur.' },
             ],
           },
         ])

@@ -6,6 +6,7 @@ import { ToolCallBlock } from './ToolCallBlock'
 import { PlotlyChart } from './PlotlyChart'
 import { DataTable } from './DataTable'
 import { StreamingText } from './StreamingText'
+import { BlockType } from '@/types/chat'
 import type { Block } from '@/types/chat'
 
 interface BlockRendererProps {
@@ -21,7 +22,7 @@ interface AssistantMessageProps {
 
 function BlockRenderer({ block, isLastBlock, isStreaming }: BlockRendererProps) {
   switch (block.type) {
-    case 'thinking':
+    case BlockType.THINKING:
       return (
         <ThinkingBlock
           content={block.content}
@@ -29,7 +30,7 @@ function BlockRenderer({ block, isLastBlock, isStreaming }: BlockRendererProps) 
         />
       )
 
-    case 'text':
+    case BlockType.TEXT:
       return (
         <StreamingText
           content={block.content}
@@ -37,7 +38,7 @@ function BlockRenderer({ block, isLastBlock, isStreaming }: BlockRendererProps) 
         />
       )
 
-    case 'tool_call':
+    case BlockType.TOOL_CALL:
       return (
         <ToolCallBlock
           name={block.name}
@@ -47,13 +48,13 @@ function BlockRenderer({ block, isLastBlock, isStreaming }: BlockRendererProps) 
         />
       )
 
-    case 'plotly':
+    case BlockType.PLOTLY:
       return <PlotlyChart json={block.json} />
 
-    case 'data_table':
+    case BlockType.DATA_TABLE:
       return <DataTable json={block.json} />
 
-    case 'error':
+    case BlockType.ERROR:
       return (
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />

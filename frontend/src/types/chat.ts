@@ -1,41 +1,68 @@
+// --- Enums ---
+
+export enum SSEEventType {
+  THINKING = 'thinking',
+  TEXT = 'text',
+  TOOL_CALL_START = 'tool_call_start',
+  TOOL_CALL_RESULT = 'tool_call_result',
+  PLOTLY = 'plotly',
+  DATA_TABLE = 'data_table',
+  DONE = 'done',
+  ERROR = 'error',
+}
+
+export enum BlockType {
+  THINKING = 'thinking',
+  TEXT = 'text',
+  TOOL_CALL = 'tool_call',
+  PLOTLY = 'plotly',
+  DATA_TABLE = 'data_table',
+  ERROR = 'error',
+}
+
+export enum ToolCallStatus {
+  RUNNING = 'running',
+  DONE = 'done',
+}
+
 // --- Blocks ---
 
 export interface ThinkingBlock {
   id: string
-  type: 'thinking'
+  type: BlockType.THINKING
   content: string
 }
 
 export interface TextBlock {
   id: string
-  type: 'text'
+  type: BlockType.TEXT
   content: string
 }
 
 export interface ToolCallBlock {
   id: string
-  type: 'tool_call'
+  type: BlockType.TOOL_CALL
   name: string
   args: Record<string, unknown>
   result: string | null
-  status: 'running' | 'done'
+  status: ToolCallStatus
 }
 
 export interface PlotlyBlock {
   id: string
-  type: 'plotly'
+  type: BlockType.PLOTLY
   json: PlotlyJSON | string
 }
 
 export interface DataTableBlock {
   id: string
-  type: 'data_table'
+  type: BlockType.DATA_TABLE
   json: DataTableJSON | string
 }
 
 export interface ErrorBlock {
   id: string
-  type: 'error'
+  type: BlockType.ERROR
   message: string
 }
 
@@ -77,6 +104,6 @@ export interface DataTableJSON {
 // --- SSE ---
 
 export interface SSEEvent {
-  type: string
+  type: SSEEventType
   data: Record<string, unknown>
 }
