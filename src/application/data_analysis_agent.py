@@ -10,6 +10,7 @@ Ce service :
 import asyncio
 import json
 import logging
+from enum import StrEnum
 from pathlib import Path
 
 import pandas as pd
@@ -38,6 +39,22 @@ from src.infrastructure.container import Container
 logger = logging.getLogger(__name__)
 
 DATA_DIR = Path("data")
+
+
+class SSEEventType(StrEnum):
+    THINKING = "thinking"
+    TEXT = "text"
+    TOOL_CALL_START = "tool_call_start"
+    TOOL_CALL_RESULT = "tool_call_result"
+    PLOTLY = "plotly"
+    DATA_TABLE = "data_table"
+    DONE = "done"
+    ERROR = "error"
+
+
+class ToolResultMarker(StrEnum):
+    PLOTLY_JSON = "PLOTLY_JSON:"
+    TABLE_JSON = "TABLE_JSON:"
 
 
 class _ParsedMessage(BaseModel):
@@ -103,7 +120,7 @@ class DataAnalysisAgent:
         except Exception as e:
             logger.error(f"Erreur pour {parsed.email}: {e}", exc_info=True)
             await messaging.publish_event(
-                parsed.email, "error", {"message": str(e)}, done=True
+                parsed.email, SSEEventType.ERROR, {"message": str(e)}, done=True
             )
 
     async def _stream_events_to_user(
@@ -123,13 +140,13 @@ class DataAnalysisAgent:
                 if isinstance(event.part, ThinkingPart) and event.part.content:
                     await messaging.publish_event(
                         parsed.email,
-                        "thinking",
+                        SSEEventType.THINKING,
                         {"content": event.part.content},
                     )
                 elif isinstance(event.part, TextPart) and event.part.content:
                     await messaging.publish_event(
                         parsed.email,
-                        "text",
+                        SSEEventType.TEXT,
                         {"content": event.part.content},
                     )
 
@@ -137,20 +154,20 @@ class DataAnalysisAgent:
                 if isinstance(event.delta, ThinkingPartDelta):
                     await messaging.publish_event(
                         parsed.email,
-                        "thinking",
+                        SSEEventType.THINKING,
                         {"content": event.delta.content_delta},
                     )
                 elif isinstance(event.delta, TextPartDelta):
                     await messaging.publish_event(
                         parsed.email,
-                        "text",
+                        SSEEventType.TEXT,
                         {"content": event.delta.content_delta},
                     )
 
             elif isinstance(event, FunctionToolCallEvent):
                 await messaging.publish_event(
                     parsed.email,
-                    "tool_call_start",
+                    SSEEventType.TOOL_CALL_START,
                     {
                         "name": event.part.tool_name,
                         "args": event.part.args,
@@ -160,24 +177,24 @@ class DataAnalysisAgent:
             elif isinstance(event, FunctionToolResultEvent):
                 result_str = str(event.result.content)
 
-                if "PLOTLY_JSON:" in result_str:
-                    plotly_json = result_str.split("PLOTLY_JSON:", 1)[1]
+                if ToolResultMarker.PLOTLY_JSON in result_str:
+                    plotly_json = result_str.split(ToolResultMarker.PLOTLY_JSON, 1)[1]
                     await messaging.publish_event(
                         parsed.email,
-                        "plotly",
+                        SSEEventType.PLOTLY,
                         {"json": json.loads(plotly_json)},
                     )
-                elif "TABLE_JSON:" in result_str:
-                    table_json = result_str.split("TABLE_JSON:", 1)[1]
+                elif ToolResultMarker.TABLE_JSON in result_str:
+                    table_json = result_str.split(ToolResultMarker.TABLE_JSON, 1)[1]
                     await messaging.publish_event(
                         parsed.email,
-                        "data_table",
+                        SSEEventType.DATA_TABLE,
                         {"json": json.loads(table_json)},
                     )
                 else:
                     await messaging.publish_event(
                         parsed.email,
-                        "tool_call_result",
+                        SSEEventType.TOOL_CALL_RESULT,
                         {
                             "tool_call_id": event.tool_call_id,
                             "result": result_str,
@@ -187,4 +204,4 @@ class DataAnalysisAgent:
             elif isinstance(event, AgentRunResultEvent):
                 break
 
-        await messaging.publish_event(parsed.email, "done", {}, done=True)
+        await messaging.publish_event(parsed.email, SSEEventType.DONE, {}, done=True)
