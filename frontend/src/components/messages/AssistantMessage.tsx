@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Bot, AlertCircle } from 'lucide-react'
@@ -6,12 +7,22 @@ import { ToolCallBlock } from './ToolCallBlock'
 import { PlotlyChart } from './PlotlyChart'
 import { DataTable } from './DataTable'
 import { StreamingText } from './StreamingText'
-import { BlockType } from '@/types/chat'
+import { BlockType, ToolCallStatus } from '@/types/chat'
 import type { Block } from '@/types/chat'
+
+function isBlockComplete(block: Block, isLast: boolean, isStreaming: boolean): boolean {
+  if (block.type === BlockType.TOOL_CALL) {
+    return block.status === ToolCallStatus.DONE
+  }
+  if (block.type === BlockType.THINKING || block.type === BlockType.TEXT) {
+    return !isLast || !isStreaming
+  }
+  return true // PLOTLY, DATA_TABLE, ERROR
+}
 
 interface BlockRendererProps {
   block: Block
-  isLastBlock: boolean
+  isActive: boolean
   isStreaming: boolean
 }
 
@@ -20,13 +31,14 @@ interface AssistantMessageProps {
   isStreaming?: boolean
 }
 
-function BlockRenderer({ block, isLastBlock, isStreaming }: BlockRendererProps) {
+const BlockRenderer = memo(function BlockRenderer({ block, isActive, isStreaming }: BlockRendererProps) {
   switch (block.type) {
     case BlockType.THINKING:
       return (
         <ThinkingBlock
           content={block.content}
-          isStreaming={isStreaming && isLastBlock}
+          isStreaming={isStreaming}
+          isActive={isActive}
         />
       )
 
@@ -34,7 +46,7 @@ function BlockRenderer({ block, isLastBlock, isStreaming }: BlockRendererProps) 
       return (
         <StreamingText
           content={block.content}
-          isStreaming={isStreaming && isLastBlock}
+          isStreaming={isStreaming}
         />
       )
 
@@ -45,6 +57,7 @@ function BlockRenderer({ block, isLastBlock, isStreaming }: BlockRendererProps) 
           args={block.args}
           result={block.result}
           status={block.status}
+          isActive={isActive}
         />
       )
 
@@ -65,7 +78,7 @@ function BlockRenderer({ block, isLastBlock, isStreaming }: BlockRendererProps) 
     default:
       return null
   }
-}
+})
 
 export function AssistantMessage({ blocks, isStreaming = false }: AssistantMessageProps) {
   return (
@@ -76,14 +89,22 @@ export function AssistantMessage({ blocks, isStreaming = false }: AssistantMessa
         </AvatarFallback>
       </Avatar>
       <div className="flex-1 min-w-0 space-y-3">
-        {blocks.map((block, i) => (
-          <BlockRenderer
-            key={block.id || i}
-            block={block}
-            isLastBlock={i === blocks.length - 1}
-            isStreaming={isStreaming}
-          />
-        ))}
+        {blocks.map((block, i) => {
+          const isLastBlock = i === blocks.length - 1
+          const nextBlock = blocks[i + 1]
+          const isNextComplete = nextBlock
+            ? isBlockComplete(nextBlock, i + 1 === blocks.length - 1, isStreaming)
+            : false
+
+          return (
+            <BlockRenderer
+              key={block.id || i}
+              block={block}
+              isActive={isStreaming && (isLastBlock || !isNextComplete)}
+              isStreaming={isStreaming && isLastBlock}
+            />
+          )
+        })}
       </div>
     </div>
   )

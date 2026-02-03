@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState, useRef, memo } from 'react'
 import { Wrench, ChevronRight, Check } from 'lucide-react'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -16,12 +16,35 @@ interface ToolCallBlockProps {
   args: Record<string, unknown>
   result: string | null
   status: 'running' | 'done'
+  isActive?: boolean
 }
 
-export function ToolCallBlock({ name, args, result, status }: ToolCallBlockProps) {
+export const ToolCallBlock = memo(function ToolCallBlock({ name, args, result, status, isActive = false }: ToolCallBlockProps) {
   const [showArgs, setShowArgs] = useState(false)
   const [showResult, setShowResult] = useState(false)
+  const [isClosing, setIsClosing] = useState(false)
+  const hasBeenActive = useRef(false)
   const isRunning = status === 'running'
+
+  useEffect(() => {
+    if (isActive) {
+      hasBeenActive.current = true
+      setShowArgs(true)
+      setIsClosing(false)
+    } else if (hasBeenActive.current) {
+      setIsClosing(true)
+      const timer = setTimeout(() => {
+        setShowArgs(false)
+        setShowResult(false)
+        setIsClosing(false)
+      }, 1600)
+      return () => clearTimeout(timer)
+    }
+  }, [isActive])
+
+  useEffect(() => {
+    if (isActive && result) setShowResult(true)
+  }, [result, isActive])
 
   return (
     <Card
@@ -58,7 +81,10 @@ export function ToolCallBlock({ name, args, result, status }: ToolCallBlockProps
               />
               Arguments
             </CollapsibleTrigger>
-            <CollapsibleContent>
+            <CollapsibleContent className={cn(
+              "overflow-hidden transition-opacity duration-1000 data-[state=open]:animate-collapsible-down data-[state=closed]:animate-collapsible-up",
+              isClosing ? "opacity-30" : "opacity-100"
+            )}>
               <ArgsDisplay args={args} />
             </CollapsibleContent>
           </Collapsible>
@@ -76,7 +102,10 @@ export function ToolCallBlock({ name, args, result, status }: ToolCallBlockProps
               />
               Resultat
             </CollapsibleTrigger>
-            <CollapsibleContent>
+            <CollapsibleContent className={cn(
+              "overflow-hidden transition-opacity duration-1000 data-[state=open]:animate-collapsible-down data-[state=closed]:animate-collapsible-up",
+              isClosing ? "opacity-30" : "opacity-100"
+            )}>
               <pre className="mt-1.5 rounded-md bg-muted/30 px-3 py-2 text-xs font-mono text-muted-foreground leading-relaxed whitespace-pre-wrap max-h-40 overflow-y-auto">
                 {result}
               </pre>
@@ -86,4 +115,4 @@ export function ToolCallBlock({ name, args, result, status }: ToolCallBlockProps
       </CardContent>
     </Card>
   )
-}
+})

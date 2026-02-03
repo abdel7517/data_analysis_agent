@@ -19,7 +19,7 @@ export function ChatPage() {
   const [email, setEmail] = useState('')
   const [isConnected, setIsConnected] = useState(false)
 
-  const { messages, streamingBlocks, isLoading, sendMessage, clearMessages } =
+  const { messages, streamingBlocks, isLoading, sendMessage, clearMessages, streamingMessageId } =
     useChat(email)
 
   const handleConnect = (e: React.FormEvent<HTMLFormElement>) => {
@@ -112,6 +112,7 @@ export function ChatPage() {
               messages={messages}
               streamingBlocks={streamingBlocks}
               isLoading={isLoading}
+              streamingMessageId={streamingMessageId}
             />
           )}
         </div>

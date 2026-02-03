@@ -14,6 +14,7 @@ export function useChat(email: string) {
   const [isLoading, setIsLoading] = useState(false)
 
   const blocksRef = useRef<Block[]>([])
+  const streamingMessageIdRef = useRef<string | null>(null)
 
   // --- Helpers d'accumulation ---
 
@@ -127,27 +128,31 @@ export function useChat(email: string) {
       case SSEEventType.DONE: {
         const finalBlocks = [...blocksRef.current]
         if (finalBlocks.length > 0) {
+          const messageId = streamingMessageIdRef.current || nextMessageId()
           setMessages((prev) => [
             ...prev,
-            { id: nextMessageId(), role: 'assistant' as const, blocks: finalBlocks },
+            { id: messageId, role: 'assistant' as const, blocks: finalBlocks },
           ])
         }
         blocksRef.current = []
         setStreamingBlocks([])
         setIsLoading(false)
+        streamingMessageIdRef.current = null
         break
       }
 
       case SSEEventType.ERROR: {
         addBlock({ type: BlockType.ERROR, message: data.data.message as string })
         const finalBlocks = [...blocksRef.current]
+        const messageId = streamingMessageIdRef.current || nextMessageId()
         setMessages((prev) => [
           ...prev,
-          { id: nextMessageId(), role: 'assistant' as const, blocks: finalBlocks },
+          { id: messageId, role: 'assistant' as const, blocks: finalBlocks },
         ])
         blocksRef.current = []
         setStreamingBlocks([])
         setIsLoading(false)
+        streamingMessageIdRef.current = null
         break
       }
     }
@@ -168,6 +173,7 @@ export function useChat(email: string) {
       setIsLoading(true)
       blocksRef.current = []
       setStreamingBlocks([])
+      streamingMessageIdRef.current = nextMessageId()
 
       connect()
 
@@ -190,6 +196,7 @@ export function useChat(email: string) {
             ],
           },
         ])
+        streamingMessageIdRef.current = null
         setIsLoading(false)
         disconnect()
       }
@@ -201,9 +208,10 @@ export function useChat(email: string) {
     setMessages([])
     setStreamingBlocks([])
     blocksRef.current = []
+    streamingMessageIdRef.current = null
     setIsLoading(false)
     disconnect()
   }, [disconnect])
 
-  return { messages, streamingBlocks, isLoading, sendMessage, clearMessages }
+  return { messages, streamingBlocks, isLoading, sendMessage, clearMessages, streamingMessageId: streamingMessageIdRef.current }
 }

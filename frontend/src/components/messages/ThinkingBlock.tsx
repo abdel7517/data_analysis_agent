@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef, memo } from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { Brain, ChevronRight } from 'lucide-react'
@@ -12,10 +12,28 @@ import { cn } from '@/lib/utils'
 interface ThinkingBlockProps {
   content: string
   isStreaming?: boolean
+  isActive?: boolean
 }
 
-export function ThinkingBlock({ content, isStreaming = false }: ThinkingBlockProps) {
-  const [isOpen, setIsOpen] = useState(isStreaming)
+export const ThinkingBlock = memo(function ThinkingBlock({ content, isStreaming = false, isActive = false }: ThinkingBlockProps) {
+  const [isOpen, setIsOpen] = useState(isActive)
+  const [isClosing, setIsClosing] = useState(false)
+  const hasBeenActive = useRef(false)
+
+  useEffect(() => {
+    if (isActive) {
+      hasBeenActive.current = true
+      setIsOpen(true)
+      setIsClosing(false)
+    } else if (hasBeenActive.current) {
+      setIsClosing(true)
+      const timer = setTimeout(() => {
+        setIsOpen(false)
+        setIsClosing(false)
+      }, 1600)
+      return () => clearTimeout(timer)
+    }
+  }, [isActive])
 
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen} className="w-full">
@@ -32,7 +50,10 @@ export function ThinkingBlock({ content, isStreaming = false }: ThinkingBlockPro
           <span className="inline-flex h-2 w-2 rounded-full bg-amber-500 animate-pulse" />
         )}
       </CollapsibleTrigger>
-      <CollapsibleContent>
+      <CollapsibleContent className={cn(
+        "overflow-hidden transition-opacity duration-1000 data-[state=open]:animate-collapsible-down data-[state=closed]:animate-collapsible-up",
+        isClosing ? "opacity-30" : "opacity-100"
+      )}>
         <div className="ml-7 mt-1 rounded-md border border-dashed border-muted-foreground/25 bg-muted/30 px-3 py-2 text-xs text-muted-foreground leading-relaxed prose prose-sm dark:prose-invert max-w-none">
           <ReactMarkdown
             remarkPlugins={[remarkGfm]}
@@ -60,4 +81,4 @@ export function ThinkingBlock({ content, isStreaming = false }: ThinkingBlockPro
       </CollapsibleContent>
     </Collapsible>
   )
-}
+})
