@@ -54,11 +54,14 @@ async def visualize(
             filepath = f"output/{safe_title}.html"
             fig.write_html(filepath)
 
+            fig_json = fig.to_json()
+
             return (
                 f"Figure created: {title}\n"
                 f"Saved to: {filepath}\n"
                 f"Type: {type(fig).__name__}\n"
-                f"Traces: {len(fig.data)}"
+                f"Traces: {len(fig.data)}\n"
+                f"PLOTLY_JSON:{fig_json}"
             )
 
         elif result_type == "table":
@@ -67,11 +70,14 @@ async def visualize(
             filepath = f"output/{safe_title}.csv"
             result.to_csv(filepath, index=False)
 
+            table_json = result.head(100).to_json(orient="split")
+
             return (
                 f"Table created: {title}\n"
                 f"Saved to: {filepath}\n"
                 f"Shape: {result.shape[0]} rows x {result.shape[1]} columns\n"
-                f"Preview:\n{result.head(10).to_string(index=False)}"
+                f"Preview:\n{result.head(10).to_string(index=False)}\n"
+                f"TABLE_JSON:{table_json}"
             )
 
         else:

@@ -95,6 +95,28 @@ class MessagingService:
         if done:
             logger.debug(f"Réponse complète envoyée à {email}")
 
+    async def publish_event(
+        self, email: str, event_type: str, data: dict, done: bool = False
+    ) -> None:
+        """
+        Publie un événement typé vers l'utilisateur.
+
+        Args:
+            email: Email de l'utilisateur (identifiant du canal de sortie)
+            event_type: Type d'événement (thinking, text, tool_call_start, tool_call_result, plotly, data_table, done, error)
+            data: Données de l'événement
+            done: True si c'est le dernier événement du stream
+        """
+        outbox = f"{self.OUTBOX_PREFIX}{email}"
+        await self._channel.publish(outbox, {
+            "type": event_type,
+            "data": data,
+            "done": done,
+        })
+
+        if done:
+            logger.debug(f"Stream terminé pour {email}")
+
     async def publish_error(self, email: str, error: str) -> None:
         """
         Publie une erreur vers l'utilisateur.

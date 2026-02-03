@@ -62,13 +62,7 @@ function TypingIndicator() {
   )
 }
 
-export function ChatWidget({ defaultEmail = '', companyId }) {
-  // Validation: companyId est obligatoire
-  if (!companyId) {
-    console.error('[ChatWidget] Erreur: companyId est requis', { companyId })
-    return null
-  }
-
+export function ChatWidget({ defaultEmail = '' }) {
   const [isOpen, setIsOpen] = useState(false)
   const [email, setEmail] = useState(defaultEmail)
   const [isConnected, setIsConnected] = useState(!!defaultEmail)
@@ -89,20 +83,69 @@ export function ChatWidget({ defaultEmail = '', companyId }) {
   }, [messages, currentResponse])
 
   const handleSSEMessage = useCallback((data) => {
-    if (data.done) {
-      const finalContent = responseBufferRef.current + (data.chunk || '')
-      if (finalContent) {
-        setMessages(prev => [...prev, {
-          role: 'assistant',
-          content: finalContent
-        }])
+    if (data.type) {
+      switch (data.type) {
+        case 'thinking':
+          break
+        case 'text':
+          responseBufferRef.current += data.data.content
+          setCurrentResponse(responseBufferRef.current)
+          break
+        case 'tool_call_start':
+          break
+        case 'tool_call_result':
+          break
+        case 'plotly':
+          setMessages(prev => [...prev, {
+            role: 'assistant',
+            type: 'plotly',
+            content: data.data.json,
+          }])
+          break
+        case 'data_table':
+          setMessages(prev => [...prev, {
+            role: 'assistant',
+            type: 'data_table',
+            content: data.data.json,
+          }])
+          break
+        case 'done': {
+          const finalContent = responseBufferRef.current
+          if (finalContent) {
+            setMessages(prev => [...prev, {
+              role: 'assistant',
+              type: 'text',
+              content: finalContent,
+            }])
+          }
+          responseBufferRef.current = ''
+          setCurrentResponse('')
+          setIsLoading(false)
+          break
+        }
+        case 'error':
+          setMessages(prev => [...prev, {
+            role: 'assistant',
+            type: 'text',
+            content: `Erreur: ${data.data.message}`,
+          }])
+          setIsLoading(false)
+          break
       }
-      responseBufferRef.current = ''
-      setCurrentResponse('')
-      setIsLoading(false)
     } else {
-      responseBufferRef.current += data.chunk
-      setCurrentResponse(responseBufferRef.current)
+      // Fallback ancien format {chunk, done}
+      if (data.done) {
+        const finalContent = responseBufferRef.current + (data.chunk || '')
+        if (finalContent) {
+          setMessages(prev => [...prev, { role: 'assistant', content: finalContent }])
+        }
+        responseBufferRef.current = ''
+        setCurrentResponse('')
+        setIsLoading(false)
+      } else {
+        responseBufferRef.current += data.chunk
+        setCurrentResponse(responseBufferRef.current)
+      }
     }
   }, [])
 
@@ -133,7 +176,6 @@ export function ChatWidget({ defaultEmail = '', companyId }) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          company_id: companyId,  // Multi-tenant: ID entreprise
           email,
           message: userMessage
         })

@@ -26,6 +26,11 @@ redis>=5.0.0
 httpx>=0.25.0
 pydantic[email]>=2.0.0
 
+# Data Analysis Agent
+pydantic-ai>=1.51.0
+duckdb>=0.10.0
+plotly>=5.0.0
+
 # Dependency Injection
 dependency-injector>=4.40.0
 
