@@ -2,6 +2,6 @@
 Services - Orchestrent les use cases de l'application.
 """
 
-from src.application.services.rag_service import RAGService
+from src.application.services.messaging_service import MessagingService
 
-__all__ = ["RAGService"]
+__all__ = ["MessagingService"]

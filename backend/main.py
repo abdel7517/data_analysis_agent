@@ -1,5 +1,5 @@
 """
-FastAPI Application - Agent Conversationnel avec SSE + Redis Pub/Sub
+FastAPI Application - Data Analysis Agent avec SSE + Redis Pub/Sub
 
 Usage:
     uvicorn backend.main:app --reload --port 8000
@@ -10,7 +10,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from .infrastructure.container import Container
-from .routes import chat_router, stream_router, documents_router
+from .routes import chat_router, stream_router
 
 container = Container()
 
@@ -25,9 +25,9 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="RAG Conversational Agent API",
-    description="API pour interagir avec l'agent conversationnel via SSE",
-    version="1.0.0",
+    title="Data Analysis Agent API",
+    description="API pour interagir avec l'agent d'analyse de donnees via SSE",
+    version="2.0.0",
     lifespan=lifespan
 )
 
@@ -41,7 +41,6 @@ app.add_middleware(
 
 app.include_router(chat_router, prefix="/api", tags=["chat"])
 app.include_router(stream_router, prefix="/api", tags=["stream"])
-app.include_router(documents_router, prefix="/api", tags=["documents"])
 
 
 @app.get("/health")

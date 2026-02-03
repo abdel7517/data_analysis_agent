@@ -1,5 +1,5 @@
 """
-RAG Conversational Agent - Module source principal
+Data Analysis Agent - Module source principal
 """
 
 from .config.settings import settings
