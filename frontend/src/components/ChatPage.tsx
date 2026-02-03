@@ -22,7 +22,7 @@ export function ChatPage() {
   const { messages, streamingBlocks, isLoading, sendMessage, clearMessages } =
     useChat(email)
 
-  const handleConnect = (e: React.FormEvent) => {
+  const handleConnect = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     if (email.trim()) {
       setIsConnected(true)
