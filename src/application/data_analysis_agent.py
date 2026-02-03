@@ -141,7 +141,7 @@ class DataAnalysisAgent:
                 )
 
             elif isinstance(event, FunctionToolResultEvent):
-                result_str = str(event.result)
+                result_str = str(event.result.content)
 
                 if "PLOTLY_JSON:" in result_str:
                     plotly_json = result_str.split("PLOTLY_JSON:", 1)[1]
