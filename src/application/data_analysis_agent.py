@@ -23,8 +23,11 @@ from pydantic_ai import (
 )
 from pydantic_ai.messages import (
     PartDeltaEvent,
+    PartStartEvent,
     TextPartDelta,
+    TextPart,
     ThinkingPartDelta,
+    ThinkingPart,
 )
 
 from agent.agent import create_agent
@@ -116,7 +119,21 @@ class DataAnalysisAgent:
         async for event in self._agent.run_stream_events(
             parsed.message, deps=context
         ):
-            if isinstance(event, PartDeltaEvent):
+            if isinstance(event, PartStartEvent):
+                if isinstance(event.part, ThinkingPart) and event.part.content:
+                    await messaging.publish_event(
+                        parsed.email,
+                        "thinking",
+                        {"content": event.part.content},
+                    )
+                elif isinstance(event.part, TextPart) and event.part.content:
+                    await messaging.publish_event(
+                        parsed.email,
+                        "text",
+                        {"content": event.part.content},
+                    )
+
+            elif isinstance(event, PartDeltaEvent):
                 if isinstance(event.delta, ThinkingPartDelta):
                     await messaging.publish_event(
                         parsed.email,
