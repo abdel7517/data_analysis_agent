@@ -78,7 +78,7 @@ export function ToolCallBlock({ name, args, result, status }: ToolCallBlockProps
               Resultat
             </CollapsibleTrigger>
             <CollapsibleContent>
-              <pre className="mt-1.5 rounded-md bg-muted px-3 py-2 text-xs font-mono whitespace-pre-wrap overflow-x-auto max-h-40 overflow-y-auto">
+              <pre className="mt-1.5 rounded-md bg-muted/30 px-3 py-2 text-xs font-mono text-muted-foreground leading-relaxed whitespace-pre-wrap max-h-40 overflow-y-auto">
                 {result}
               </pre>
             </CollapsibleContent>
