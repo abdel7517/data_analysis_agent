@@ -11,11 +11,11 @@ import { cn } from '@/lib/utils'
 
 interface ThinkingBlockProps {
   content: string
-  isStreaming?: boolean
+  done: boolean
   isActive?: boolean
 }
 
-export const ThinkingBlock = memo(function ThinkingBlock({ content, isStreaming = false, isActive = false }: ThinkingBlockProps) {
+export const ThinkingBlock = memo(function ThinkingBlock({ content, done, isActive = false }: ThinkingBlockProps) {
   const [isOpen, setIsOpen] = useState(isActive)
   const [isClosing, setIsClosing] = useState(false)
   const hasBeenActive = useRef(false)
@@ -46,7 +46,7 @@ export const ThinkingBlock = memo(function ThinkingBlock({ content, isStreaming 
         />
         <Brain className="h-3.5 w-3.5" />
         <span className="font-medium">Reflexion</span>
-        {isStreaming && (
+        {!done && (
           <span className="inline-flex h-2 w-2 rounded-full bg-amber-500 animate-pulse" />
         )}
       </CollapsibleTrigger>

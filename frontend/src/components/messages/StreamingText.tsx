@@ -4,16 +4,16 @@ import { cn } from '@/lib/utils'
 
 interface StreamingTextProps {
   content: string
-  isStreaming?: boolean
+  done: boolean
 }
 
-export function StreamingText({ content, isStreaming = false }: StreamingTextProps) {
+export function StreamingText({ content, done }: StreamingTextProps) {
   return (
     <div className="prose prose-sm dark:prose-invert max-w-none text-sm leading-relaxed">
       <ReactMarkdown remarkPlugins={[remarkGfm]}>
         {content}
       </ReactMarkdown>
-      {isStreaming && (
+      {!done && (
         <span
           className={cn(
             'inline-block w-2 h-4 bg-foreground/70 ml-0.5 -mb-0.5',

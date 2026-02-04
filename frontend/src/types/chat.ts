@@ -20,23 +20,20 @@ export enum BlockType {
   ERROR = 'error',
 }
 
-export enum ToolCallStatus {
-  RUNNING = 'running',
-  DONE = 'done',
-}
-
 // --- Blocks ---
 
 export interface ThinkingBlock {
   id: string
   type: BlockType.THINKING
   content: string
+  done: boolean
 }
 
 export interface TextBlock {
   id: string
   type: BlockType.TEXT
   content: string
+  done: boolean
 }
 
 export interface ToolCallBlock {
@@ -45,25 +42,28 @@ export interface ToolCallBlock {
   name: string
   args: Record<string, unknown>
   result: string | null
-  status: ToolCallStatus
+  done: boolean
 }
 
 export interface PlotlyBlock {
   id: string
   type: BlockType.PLOTLY
   json: PlotlyJSON | string
+  done: boolean
 }
 
 export interface DataTableBlock {
   id: string
   type: BlockType.DATA_TABLE
   json: DataTableJSON | string
+  done: boolean
 }
 
 export interface ErrorBlock {
   id: string
   type: BlockType.ERROR
   message: string
+  done: boolean
 }
 
 export type Block = ThinkingBlock | TextBlock | ToolCallBlock | PlotlyBlock | DataTableBlock | ErrorBlock

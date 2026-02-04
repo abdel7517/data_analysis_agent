@@ -57,7 +57,6 @@ export function MessageList({ messages, streamingBlocks, isLoading, streamingMes
             <AssistantMessage
               key={msg.id}
               blocks={msg.blocks}
-              isStreaming={isLoading && msg.id === streamingMessageId}
             />
           )
         )}

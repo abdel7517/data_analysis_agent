@@ -7,37 +7,25 @@ import { ToolCallBlock } from './ToolCallBlock'
 import { PlotlyChart } from './PlotlyChart'
 import { DataTable } from './DataTable'
 import { StreamingText } from './StreamingText'
-import { BlockType, ToolCallStatus } from '@/types/chat'
+import { BlockType } from '@/types/chat'
 import type { Block } from '@/types/chat'
-
-function isBlockComplete(block: Block, isLast: boolean, isStreaming: boolean): boolean {
-  if (block.type === BlockType.TOOL_CALL) {
-    return block.status === ToolCallStatus.DONE
-  }
-  if (block.type === BlockType.THINKING || block.type === BlockType.TEXT) {
-    return !isLast || !isStreaming
-  }
-  return true // PLOTLY, DATA_TABLE, ERROR
-}
 
 interface BlockRendererProps {
   block: Block
   isActive: boolean
-  isStreaming: boolean
 }
 
 interface AssistantMessageProps {
   blocks: Block[]
-  isStreaming?: boolean
 }
 
-const BlockRenderer = memo(function BlockRenderer({ block, isActive, isStreaming }: BlockRendererProps) {
+const BlockRenderer = memo(function BlockRenderer({ block, isActive }: BlockRendererProps) {
   switch (block.type) {
     case BlockType.THINKING:
       return (
         <ThinkingBlock
           content={block.content}
-          isStreaming={isStreaming}
+          done={block.done}
           isActive={isActive}
         />
       )
@@ -46,7 +34,7 @@ const BlockRenderer = memo(function BlockRenderer({ block, isActive, isStreaming
       return (
         <StreamingText
           content={block.content}
-          isStreaming={isStreaming}
+          done={block.done}
         />
       )
 
@@ -56,7 +44,6 @@ const BlockRenderer = memo(function BlockRenderer({ block, isActive, isStreaming
           name={block.name}
           args={block.args}
           result={block.result}
-          status={block.status}
           isActive={isActive}
         />
       )
@@ -80,7 +67,7 @@ const BlockRenderer = memo(function BlockRenderer({ block, isActive, isStreaming
   }
 })
 
-export function AssistantMessage({ blocks, isStreaming = false }: AssistantMessageProps) {
+export function AssistantMessage({ blocks }: AssistantMessageProps) {
   return (
     <div className="flex gap-3">
       <Avatar className="h-8 w-8 flex-shrink-0 mt-1">
@@ -90,18 +77,16 @@ export function AssistantMessage({ blocks, isStreaming = false }: AssistantMessa
       </Avatar>
       <div className="flex-1 min-w-0 space-y-3">
         {blocks.map((block, i) => {
-          const isLastBlock = i === blocks.length - 1
           const nextBlock = blocks[i + 1]
-          const isNextComplete = nextBlock
-            ? isBlockComplete(nextBlock, i + 1 === blocks.length - 1, isStreaming)
-            : false
+          // Un bloc est "actif" tant qu'il n'est pas terminé,
+          // ou que le bloc suivant n'est pas terminé (garde le collapsible ouvert)
+          const isActive = !block.done || (!!nextBlock && !nextBlock.done)
 
           return (
             <BlockRenderer
               key={block.id || i}
               block={block}
-              isActive={isStreaming && (isLastBlock || !isNextComplete)}
-              isStreaming={isStreaming && isLastBlock}
+              isActive={isActive}
             />
           )
         })}

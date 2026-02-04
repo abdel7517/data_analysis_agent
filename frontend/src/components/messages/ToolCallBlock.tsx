@@ -15,16 +15,14 @@ interface ToolCallBlockProps {
   name: string
   args: Record<string, unknown>
   result: string | null
-  status: 'running' | 'done'
   isActive?: boolean
 }
 
-export const ToolCallBlock = memo(function ToolCallBlock({ name, args, result, status, isActive = false }: ToolCallBlockProps) {
+export const ToolCallBlock = memo(function ToolCallBlock({ name, args, result, isActive = false }: ToolCallBlockProps) {
   const [showArgs, setShowArgs] = useState(false)
   const [showResult, setShowResult] = useState(false)
   const [isClosing, setIsClosing] = useState(false)
   const hasBeenActive = useRef(false)
-  const isRunning = status === 'running'
 
   useEffect(() => {
     if (isActive) {
@@ -50,13 +48,13 @@ export const ToolCallBlock = memo(function ToolCallBlock({ name, args, result, s
     <Card
       className={cn(
         'w-full border-l-4 transition-colors',
-        isRunning ? 'border-l-blue-500' : 'border-l-green-500'
+        isActive ? 'border-l-blue-500' : 'border-l-green-500'
       )}
     >
       <CardHeader className="px-4 py-2.5 flex flex-row items-center gap-3 space-y-0">
         <Wrench className="h-4 w-4 text-muted-foreground flex-shrink-0" />
         <span className="text-sm font-semibold flex-1">{name}</span>
-        {isRunning ? (
+        {isActive ? (
           <Badge variant="secondary" className="gap-1.5">
             <Spinner className="h-3 w-3" />
             En cours
