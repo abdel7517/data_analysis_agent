@@ -1,170 +1,198 @@
-# RAG Conversational Agent Multi-tenant
+# Data Analysis Agent
 
-Agent conversationnel intelligent avec **RAG** (Retrieval Augmented Generation), interface web temps reel, et architecture microservices.
+Agent d'analyse de données intelligent avec streaming temps réel, utilisant **PydanticAI**, **DuckDB** et **Plotly** pour explorer et visualiser des datasets CSV via une interface web interactive.
 
-## Fonctionnalites
+## Fonctionnalités
 
-- **Agent LangChain** avec memoire persistante (PostgreSQL)
-- **RAG** : recherche semantique dans des documents PDF avec pgvector (PostgreSQL)
-- **Multi-tenant** : filtrage des documents par `company_id` pour isoler les donnees par entreprise
-- **Multi-LLM** : support Ollama (local), Mistral (API cloud) et OpenAI (API cloud)
-- **API REST** avec FastAPI
-- **Streaming temps reel** via SSE + Redis Pub/Sub
-- **Upload de documents PDF** via Google Cloud Storage avec gestion CRUD depuis le frontend
-- **Interface web React** avec chat en temps reel
+- **Agent PydanticAI** avec Mistral LLM pour analyse en langage naturel
+- **Requêtes SQL** sur datasets CSV via DuckDB (in-memory)
+- **Visualisations interactives** Plotly.js intégrées
+- **Streaming temps réel** via Server-Sent Events (SSE)
+- **Architecture event-driven** avec Redis Pub/Sub pour découplage backend/agent
+- **Interface React TypeScript** moderne avec shadcn/ui
+- **Système de blocs dynamiques** : thinking, text, tool calls, charts, tables
+- **Animations fluides** pour collapsibles avec transitions CSS
 
 ## Architecture
 
 ```
-┌──────────────┐     POST /chat     ┌──────────────┐
-│   Frontend   │ ─────────────────▶ │   FastAPI    │
-│   (React)    │                    │   Backend    │
-└──────────────┘                    └──────────────┘
-       ▲                                   │
-       │                                   │ PUBLISH
-       │ SSE                               ▼
-       │ (streaming)              ┌──────────────┐
-       │                          │    Redis     │
-       │                          │   Pub/Sub    │
-       │                          └──────────────┘
-       │                                   │
-       │                                   │ SUBSCRIBE
-       │         PUBLISH                   ▼
-       └─────────────────────────  ┌──────────────┐
-                                   │    Agent     │
-                                   │   Worker     │
-                                   │  (LangChain) │
-                                   └──────────────┘
+┌──────────────┐     POST /chat      ┌──────────────┐
+│   Frontend   │ ──────────────────▶ │   FastAPI    │
+│ (React + TS) │                     │   Backend    │
+└──────────────┘                     └──────────────┘
+       ▲                                    │
+       │                                    │ PUBLISH
+       │ SSE                                ▼
+       │ (streaming)              ┌──────────────────┐
+       │                          │      Redis       │
+       │                          │     Pub/Sub      │
+       │                          └──────────────────┘
+       │                                    │
+       │                                    │ SUBSCRIBE
+       │         PUBLISH                    ▼
+       └─────────────────────────  ┌──────────────────┐
+                                   │ Agent Worker     │
+                                   │ (PydanticAI)     │
+                                   │                  │
+                                   │ ┌──────────────┐ │
+                                   │ │   DuckDB     │ │
+                                   │ │  (CSV data)  │ │
+                                   │ └──────────────┘ │
+                                   └──────────────────┘
 ```
 
-### Flow detaille
+### Flow détaillé
 
 ```
-Frontend                    Backend (FastAPI)              Redis             Worker (LangChain)
-   │                              │                          │                  │
-   ├── POST /api/chat ──────────► │                          │                  │
-   │   {email, message}           ├── broker.publish() ────► │                  │
-   │                              │   inbox:email            │                  │
-   │   ◄── {status: "queued"} ────┤                          │                  │
-   │                              │                          ├── inbox:email ──►│
-   │                              │                          │                  │ RAG + LLM
-   ├── GET /stream/email ────────►│                          │                  │
-   │   (SSE connexion ouverte)    ├── broker.subscribe() ──► │                  │
-   │                              │   outbox:email           │  ◄── chunk 1 ────┤
-   │   ◄── chunk 1 ───────────────┤ ◄────────────────────────┤                  │
-   │   ◄── chunk 2 ───────────────┤ ◄────────────────────────┤  ◄── chunk 2 ────┤
-   │   ◄── {done: true} ──────────┤ ◄────────────────────────┤  ◄── done ───────┤
-   │   (connexion fermee)         │                          │                  │
+Frontend              Backend (FastAPI)           Redis           Agent Worker (PydanticAI)
+   │                         │                      │                     │
+   ├── POST /api/chat ──────►│                      │                     │
+   │   {email, message}      ├── publish() ───────►│                     │
+   │                         │   inbox:{email}      │                     │
+   │   ◄── {status:"queued"} │                      │                     │
+   │                         │                      ├── subscribe ───────►│
+   │                         │                      │   inbox:*           │
+   │                         │                      │                     │
+   ├── GET /stream/{email} ──►│                      │                     │
+   │   (SSE connection)      ├── subscribe() ──────►│                     │
+   │                         │   outbox:{email}     │                     │
+   │                         │                      │                     │ DuckDB query
+   │                         │                      │                     │ Plotly chart
+   │                         │                      │  ◄── thinking ──────┤
+   │   ◄── thinking event ───┤ ◄────────────────────┤                     │
+   │   ◄── tool_call_start ──┤ ◄────────────────────┤  ◄── tool events ──┤
+   │   ◄── plotly chart ─────┤ ◄────────────────────┤  ◄── plotly ───────┤
+   │   ◄── done ─────────────┤ ◄────────────────────┤  ◄── done ─────────┤
 ```
 
-> Le backend est un **passe-plat** : il ne fait aucune IA. Il recoit du frontend, publie dans Redis, et retransmet les reponses du worker vers le frontend via SSE.
+> Le backend est un **passe-plat** : il publie les requêtes dans Redis et retransmet les événements de l'agent vers le frontend via SSE. Aucune logique métier n'est dans le backend.
 
 ## Stack Technique
 
 | Composant | Technologies |
 |-----------|--------------|
-| **Agent** | LangChain, LangGraph |
-| **RAG** | pgvector (PostgreSQL), pypdf |
-| **LLM** | Ollama (local) / Mistral (cloud) / OpenAI (cloud) |
-| **Embeddings** | HuggingFace (local) / Ollama (local) / Mistral (cloud) / OpenAI (cloud) |
-| **Backend** | FastAPI, SSE, Redis Pub/Sub |
-| **Frontend** | React, Vite, shadcn/ui, React Router |
-| **Stockage fichiers** | Google Cloud Storage (PDF upload) |
-| **Database** | PostgreSQL (memoire + vectors + metadata docs), Redis (messaging) |
-| **Infra** | Docker Compose |
+| **Agent** | PydanticAI 1.51+, Mistral LLM (magistral-small-latest) |
+| **Data Processing** | DuckDB, Pandas |
+| **Visualisation** | Plotly.js |
+| **Backend** | FastAPI, sse-starlette, broadcaster[redis] |
+| **Frontend** | React 18, TypeScript 5.9, Vite 5 |
+| **UI Library** | shadcn/ui, Radix UI, Tailwind CSS |
+| **Messaging** | Redis Pub/Sub |
+| **Icons** | Lucide React |
+| **Markdown** | React Markdown + remark-gfm |
+| **Dependency Injection** | dependency-injector |
+| **Infra** | Docker Compose (Redis) |
 
-## Structure du projet (Clean Architecture)
+## Structure du Projet
 
 ```
-RAG_CONV_AGENT/
-├── src/
-│   ├── domain/                          # Couche Domain (entites + ports)
-│   │   ├── models/
-│   │   │   └── company.py               # Modele Company (multi-tenant)
-│   │   └── ports/
-│   │       ├── vector_store_port.py     # Interface VectorStore
-│   │       ├── retriever_port.py        # Interface Retriever
-│   │       ├── document_loader_port.py  # Interface DocumentLoader
-│   │       ├── message_channel_port.py  # Interface MessageChannel + Message
-│   │       └── llm_port.py             # Interface LLM
-│   │
-│   ├── application/                     # Couche Application (orchestration)
-│   │   ├── simple_agent.py              # Agent conversationnel (enable_rag option)
-│   │   ├── rag_tools.py                 # Tool search_documents + RAGAgentState
-│   │   └── services/
-│   │       ├── rag_service.py           # Service RAG (recherche + formatage)
-│   │       └── messaging_service.py     # Service messaging (publish/listen)
-│   │
-│   ├── infrastructure/                  # Couche Infrastructure (implementations)
-│   │   ├── adapters/
-│   │   │   ├── pgvector_adapter.py      # PGVector (VectorStorePort + RetrieverPort)
-│   │   │   ├── document_loader_adapter.py # PDF loader (DocumentLoaderPort)
-│   │   │   ├── redis_channel_adapter.py   # Redis Pub/Sub (MessageChannel)
-│   │   │   ├── memory_channel_adapter.py  # In-Memory (MessageChannel)
-│   │   │   ├── ollama_adapter.py        # Ollama LLM (LLMPort)
-│   │   │   ├── mistral_adapter.py       # Mistral LLM (LLMPort)
-│   │   │   └── openai_adapter.py        # OpenAI LLM (LLMPort)
-│   │   ├── repositories/
-│   │   │   └── company_repository.py    # Repository Company (PostgreSQL)
-│   │   ├── container.py                 # Container DI (dependency-injector)
-│   │   └── db_setup.py                  # Setup PostgreSQL
-│   │
-│   └── config/
-│       └── settings.py                  # Configuration centralisee
+agent_orbital/
+├── agent/                               # Agent PydanticAI
+│   ├── agent.py                         # Création de l'agent avec tools
+│   ├── context.py                       # AgentContext (datasets, email)
+│   ├── prompt.py                        # System prompt avec info datasets
+│   └── tools/
+│       ├── query_data.py                # Outil : requêtes SQL via DuckDB
+│       └── visualize.py                 # Outil : génération Plotly charts
 │
-├── backend/                             # API FastAPI (Hexagonal)
+├── backend/                             # API FastAPI
 │   ├── main.py                          # Application FastAPI + Container DI
 │   ├── domain/
 │   │   ├── models/
-│   │   │   ├── chat.py                  # ChatRequest, ChatResponse
-│   │   │   └── document.py             # Document, DocumentResponse, etc.
+│   │   │   └── chat.py                  # ChatRequest, ChatResponse
 │   │   └── ports/
-│   │       ├── event_broker_port.py     # Interface EventBroker (pub/sub)
-│   │       ├── file_storage_port.py     # Interface FileStorage (GCS)
-│   │       └── document_repository_port.py # Interface DocumentRepository
+│   │       └── event_broker_port.py     # Interface EventBroker (pub/sub)
 │   ├── infrastructure/
-│   │   ├── container.py                 # Container DI (dependency-injector)
-│   │   ├── adapters/
-│   │   │   ├── broadcast_adapter.py     # Redis Broadcast (EventBrokerPort)
-│   │   │   └── gcs_storage_adapter.py   # Google Cloud Storage (FileStoragePort)
-│   │   └── repositories/
-│   │       └── document_repository.py   # PostgreSQL (DocumentRepositoryPort)
+│   │   ├── container.py                 # Container DI (event_broker)
+│   │   └── adapters/
+│   │       └── broadcast_adapter.py     # Redis Pub/Sub via broadcaster
 │   └── routes/
-│       ├── chat.py                      # POST /chat (@inject)
-│       ├── stream.py                    # GET /stream/{email} SSE (@inject)
-│       └── documents.py                 # CRUD /documents (@inject)
+│       ├── chat.py                      # POST /api/chat
+│       └── stream.py                    # GET /api/stream/{email} (SSE)
 │
-├── frontend/                            # Interface React
+├── src/                                 # Infrastructure agent worker
+│   ├── domain/
+│   │   └── ports/
+│   │       └── message_channel_port.py  # Interface MessageChannel
+│   ├── application/
+│   │   ├── data_analysis_agent.py       # Orchestrateur agent + streaming SSE
+│   │   └── services/
+│   │       └── messaging_service.py     # Service messaging (pub/sub)
+│   ├── infrastructure/
+│   │   ├── container.py                 # Container DI (channel selector)
+│   │   └── adapters/
+│   │       ├── redis_channel_adapter.py # Implémentation Redis
+│   │       └── memory_channel_adapter.py # Implémentation in-memory (dev)
+│   └── config/
+│       └── settings.py                  # Config (CHANNEL_TYPE, REDIS_URL)
+│
+├── frontend/                            # Interface React TypeScript
 │   ├── src/
-│   │   ├── App.jsx                      # Composant principal + routing
+│   │   ├── App.tsx                      # Composant racine
+│   │   ├── main.tsx                     # Entry point React
+│   │   ├── index.css                    # Tailwind CSS + theme variables
+│   │   ├── types/
+│   │   │   └── chat.ts                  # Types : SSEEvent, Block, Message (discriminated unions)
+│   │   ├── hooks/
+│   │   │   ├── useChat.ts               # State management + SSE event handling
+│   │   │   └── useSSE.ts                # Connexion SSE avec EventSource
 │   │   ├── components/
-│   │   │   ├── ChatWidget.jsx           # Widget chat SSE
-│   │   │   ├── DocumentsPage.jsx        # Page gestion documents (CRUD)
-│   │   │   └── DemoEcommerceWebsite.jsx # Page demo e-commerce
-│   │   └── hooks/                       # Custom hooks (SSE)
-│   └── package.json
+│   │   │   ├── ChatPage.tsx             # Page principale (email + chat)
+│   │   │   ├── MessageList.tsx          # Liste messages avec auto-scroll
+│   │   │   ├── ChatInput.tsx            # Input avec auto-resize
+│   │   │   ├── messages/                # Composants de blocs
+│   │   │   │   ├── AssistantMessage.tsx # Container assistant avec BlockRenderer
+│   │   │   │   ├── UserMessage.tsx      # Message utilisateur
+│   │   │   │   ├── ThinkingBlock.tsx    # Bloc réflexion (markdown, collapsible)
+│   │   │   │   ├── ToolCallBlock.tsx    # Bloc outil (args + result collapsibles)
+│   │   │   │   ├── StreamingText.tsx    # Texte streaming (markdown)
+│   │   │   │   ├── PlotlyChart.tsx      # Chart Plotly interactif
+│   │   │   │   ├── DataTable.tsx        # Table données
+│   │   │   │   └── ArgsDisplay.tsx      # Affichage arguments outil
+│   │   │   └── ui/                      # shadcn/ui components (15 composants)
+│   │   │       ├── alert.tsx, avatar.tsx, badge.tsx, button.tsx
+│   │   │       ├── card.tsx, collapsible.tsx, empty.tsx
+│   │   │       ├── input.tsx, scroll-area.tsx, separator.tsx
+│   │   │       ├── skeleton.tsx, spinner.tsx, table.tsx, textarea.tsx
+│   │   │       └── tooltip.tsx
+│   │   └── lib/
+│   │       └── utils.ts                 # Utilitaires (cn pour classes)
+│   ├── package.json                     # React 18 + TypeScript
+│   ├── tsconfig.json                    # Config TypeScript strict
+│   ├── tailwind.config.js               # Tailwind + animations collapsible
+│   ├── components.json                  # Config shadcn/ui
+│   ├── postcss.config.js
+│   └── vite.config.js                   # Vite dev server + proxy
 │
-├── documents/                           # Documents PDF pour RAG
-├── docker-compose.yml                   # PostgreSQL + Redis
-├── main.py                              # CLI agents
-└── requirements.txt
+├── data/                                # Datasets CSV
+│   ├── CCGENERAL.csv                    # Cartes de crédit (903 KB, 8950 lignes)
+│   ├── CarPricePrediction.csv           # Prix voitures (64 KB, 4340 lignes)
+│   ├── sales.csv                        # Ventes (9 KB, 113 lignes)
+│   └── telcoClient.csv                  # Clients télécom (972 KB, 7043 lignes)
+│
+├── output/                              # Visualisations générées (.png)
+├── docker-compose.yml                   # Redis service
+├── main.py                              # CLI : python main.py serve
+├── requirements.txt                     # Dépendances Python
+└── .env.example                         # Template configuration
 ```
 
 ### Principes architecturaux
 
-- **Ports & Adapters (Hexagonal)** : Les ports (`domain/ports/`) definissent les interfaces. Les adapters (`infrastructure/adapters/`) les implementent.
-- **Dependency Injection** : Le container DI (`dependency-injector`) gere le wiring. Les services dependent des ports, pas des implementations.
-- **Inversion de dependance** : La couche application ne connait que les abstractions. Changer de provider (ex: PGVector → Pinecone) = changer un adapter sans toucher aux services.
+- **Ports & Adapters (Hexagonal)** : Les ports (`domain/ports/`) définissent les interfaces, les adapters (`infrastructure/adapters/`) les implémentent
+- **Dependency Injection** : Container DI gère le wiring, les services dépendent des abstractions
+- **Event-driven** : Redis Pub/Sub découple le backend du worker agent
+- **Type-safe** : TypeScript strict mode + discriminated unions (SSEEvent, Block)
 
 ## Quick Start
 
-### 1. Lancer les services (PostgreSQL + Redis)
+### 1. Lancer Redis
 
 ```bash
 docker-compose up -d
 ```
 
-### 2. Installer les dependances Python
+### 2. Installer les dépendances Python
 
 ```bash
 python -m venv venv
@@ -172,315 +200,579 @@ source venv/bin/activate  # Windows: venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-### 3. Configurer le LLM
+### 3. Configurer l'environnement
 
-**Option A: 100% local (gratuit, donnees non partagees a des tiers)**
-
-Recommande pour ceux qui souhaitent conserver leurs donnees en local. Aucune information n'est envoyee a un service externe.
-
-> **Configuration minimale requise** : 16 Go de RAM, 10 Go d'espace disque libre. Un GPU est recommande mais pas obligatoire (le CPU fonctionne, mais plus lentement).
+Créer un fichier `.env` :
 
 ```bash
-# Installer Ollama depuis https://ollama.ai
-ollama pull qwen2.5:7b
-ollama serve
+# LLM (Mistral via PydanticAI)
+MODEL=mistral:magistral-small-latest
+MISTRAL_API_KEY=votre_cle_api_mistral
 
-# Dans .env
-LLM_PROVIDER=ollama
-OLLAMA_MODEL=qwen2.5:7b
-EMBEDDING_PROVIDER=huggingface
-HUGGINGFACE_EMBEDDING_MODEL=intfloat/multilingual-e5-large
+# Redis
+REDIS_URL=redis://localhost:6379
 ```
 
-> Les embeddings HuggingFace sont telecharges localement via `sentence-transformers`. Le modele LLM tourne via Ollama. Aucune donnee n'est envoyee a un service externe.
-
-**Option B: Mistral (cloud)**
-
-Pour ceux qui n'ont pas la configuration materielle necessaire pour l'option locale. Les requetes sont envoyees aux serveurs Mistral.
+### 4. Lancer l'application
 
 ```bash
-# Dans .env
-LLM_PROVIDER=mistral
-MISTRAL_API_KEY=votre_cle_api
-
-# Optionnel: garder les embeddings en local (pas de partage de donnees pour l'indexation)
-EMBEDDING_PROVIDER=huggingface
-HUGGINGFACE_EMBEDDING_MODEL=intfloat/multilingual-e5-large
-
-# Ou utiliser les embeddings Mistral (cloud)
-# EMBEDDING_PROVIDER=mistral
-```
-
-**Option C: OpenAI (cloud)**
-
-Pour ceux qui n'ont pas la configuration materielle necessaire pour l'option locale. Les requetes sont envoyees aux serveurs OpenAI.
-
-```bash
-# Dans .env
-LLM_PROVIDER=openai
-OPENAI_API_KEY=votre_cle_api
-
-# Optionnel: garder les embeddings en local (pas de partage de donnees pour l'indexation)
-EMBEDDING_PROVIDER=huggingface
-HUGGINGFACE_EMBEDDING_MODEL=intfloat/multilingual-e5-large
-
-# Ou utiliser les embeddings OpenAI (cloud)
-# EMBEDDING_PROVIDER=openai
-```
-
-### 4. Initialiser la base de donnees
-
-```bash
-python main.py setup-db
-```
-
-### 5. Indexer des documents pour le RAG
-
-Placez vos fichiers PDF dans le dossier `documents/` puis indexez-les avec un `company_id` :
-
-```bash
-# Indexer les documents pour une entreprise specifique
-python main.py index-documents --company-id techstore_123
-
-# Indexer depuis un dossier personnalise
-python main.py index-documents --company-id acme_456 --documents-path ./docs/acme
-```
-
-> **Note Multi-tenant** : Le `company_id` permet d'isoler les documents par entreprise. Chaque requete de chat doit inclure le meme `company_id` pour acceder aux bons documents.
-
-### 6. Lancer l'application
-
-```bash
-# Terminal 1: API FastAPI
+# Terminal 1: Backend FastAPI
 uvicorn backend.main:app --reload --port 8000
 
-# Terminal 2: Agent en mode serveur
-python main.py serve-rag
+# Terminal 2: Agent Worker
+python main.py serve
 
 # Terminal 3: Frontend React
-cd frontend && npm install && npm run dev
+cd frontend
+npm install
+npm run dev
 ```
 
 Ouvrir http://localhost:3000
 
-## Utilisation CLI
+## Utilisation
+
+### Interface Web
+
+1. Entrer votre email sur l'écran de connexion
+2. Poser une question sur les données disponibles :
+   - "Quel est le chiffre d'affaires par région ?"
+   - "Montre-moi l'évolution des ventes par mois"
+   - "Quel est le prix moyen par marque ?"
+3. L'agent affiche sa réflexion, exécute des requêtes SQL, et génère des visualisations
+4. Les réponses apparaissent en temps réel avec animations
+
+### CLI
 
 ```bash
-# Agent simple (conversation interactive)
-python main.py simple
-
-# Agent avec RAG (recherche dans les documents PDF)
-python main.py rag
-
-# Agent en mode serveur (ecoute Redis)
+# Lancer l'agent en mode serveur (Redis)
 python main.py serve
 
-# Agent RAG en mode serveur
-python main.py serve-rag
-
-# Mode serveur avec canal In-Memory (tests)
+# Lancer en mode développement (in-memory, sans Redis)
 python main.py serve --channel-type memory
-
-# Indexer les documents PDF dans pgvector (multi-tenant)
-python main.py index-documents --company-id <ID>
-python main.py index-documents --company-id techstore_123 --documents-path ./docs/techstore
-
-# Initialiser PostgreSQL
-python main.py setup-db
-
-# Avec Mistral
-LLM_PROVIDER=mistral python main.py simple
 ```
+
+## Datasets Disponibles
+
+4 datasets CSV pré-chargés dans `data/` :
+
+### Sales (ventes)
+- 113 lignes, 9 KB
+- Colonnes : `date`, `product`, `region`, `quantity`, `unit_price`, `revenue`
+- Exemples de questions :
+  - "Quel est le chiffre d'affaires total par région ?"
+  - "Montre-moi l'évolution des ventes par mois"
+  - "Quel produit génère le plus de revenus ?"
+  - "Compare les quantités vendues par produit et par région"
+  - "Quel est le prix unitaire moyen par produit ?"
+  - "Top 5 des meilleures journées de vente"
+  - "Quelle est la répartition du chiffre d'affaires par produit ?"
+
+### CarPricePrediction (voitures)
+- 4340 lignes, 64 KB
+- Colonnes : `Make`, `Model`, `Year`, `Engine Size`, `Mileage`, `Fuel Type`, `Transmission`, `Price`
+- Exemples de questions :
+  - "Quel est le prix moyen par marque ?"
+  - "Montre la relation entre le kilométrage et le prix"
+  - "Quelle est la distribution des types de carburant ?"
+  - "Quelles sont les 10 voitures les plus chères ?"
+  - "Comment le prix évolue-t-il en fonction de l'année ?"
+  - "Compare le prix moyen entre transmission manuelle et automatique"
+  - "Quelle est la taille moteur moyenne par marque ?"
+  - "Y a-t-il une corrélation entre la taille du moteur et le prix ?"
+
+### telcoClient (clients télécom)
+- 7043 lignes, 972 KB
+- Colonnes : `customerID`, `gender`, `SeniorCitizen`, `Partner`, `Dependents`, `tenure`, `PhoneService`, `MultipleLines`, `InternetService`, `OnlineSecurity`, `OnlineBackup`, `DeviceProtection`, `TechSupport`, `StreamingTV`, `StreamingMovies`, `Contract`, `PaperlessBilling`, `PaymentMethod`, `MonthlyCharges`, `TotalCharges`, `Churn`
+- Exemples de questions :
+  - "Quel est le taux de churn par type de contrat ?"
+  - "Montre la distribution des charges mensuelles"
+  - "Quels facteurs sont corrélés au churn ?"
+  - "Quel est le profil type des clients qui partent (churn = Yes) ?"
+  - "Compare les charges mensuelles entre clients fidèles et ceux qui churn"
+  - "Quel est le taux de churn chez les seniors vs non-seniors ?"
+  - "Quelle méthode de paiement a le plus haut taux de churn ?"
+  - "Comment le tenure (ancienneté) influence-t-il le churn ?"
+  - "Combien de clients ont un service de streaming TV ?"
+
+### CCGENERAL (cartes de crédit)
+- 8950 lignes, 903 KB
+- Colonnes : `CUST_ID`, `BALANCE`, `BALANCE_FREQUENCY`, `PURCHASES`, `ONEOFF_PURCHASES`, `INSTALLMENTS_PURCHASES`, `CASH_ADVANCE`, `PURCHASES_FREQUENCY`, `ONEOFF_PURCHASES_FREQUENCY`, `PURCHASES_INSTALLMENTS_FREQUENCY`, `CASH_ADVANCE_FREQUENCY`, `CASH_ADVANCE_TRX`, `PURCHASES_TRX`, `CREDIT_LIMIT`, `PAYMENTS`, `MINIMUM_PAYMENTS`, `PRC_FULL_PAYMENT`, `TENURE`
+- Exemples de questions :
+  - "Montre la distribution des soldes des clients"
+  - "Quelle est la relation entre la limite de crédit et les achats ?"
+  - "Top 10 clients avec le plus d'achats"
+  - "Quel pourcentage de clients utilisent les avances de cash ?"
+  - "Compare les achats en une fois vs en plusieurs fois"
+  - "Quels clients paient le montant minimum vs le montant total ?"
+  - "Quelle est la corrélation entre le solde et la limite de crédit ?"
+  - "Montre la distribution de la fréquence d'achats"
 
 ## API Endpoints
 
-| Endpoint | Methode | Description |
+| Endpoint | Méthode | Description |
 |----------|---------|-------------|
-| `/api/chat` | POST | Envoyer un message |
-| `/api/stream/{email}` | GET | SSE streaming reponse |
-| `/api/documents/upload` | POST | Upload un document PDF (multipart) |
-| `/api/documents` | GET | Lister les documents d'une entreprise |
-| `/api/documents/{id}` | DELETE | Supprimer un document (GCS + DB) |
+| `/api/chat` | POST | Envoyer un message à l'agent |
+| `/api/stream/{email}` | GET | Streaming SSE des réponses |
 | `/health` | GET | Health check |
 
-### Exemple POST /documents/upload
-
-```bash
-curl -X POST "http://localhost:8000/api/documents/upload?company_id=techstore_123" \
-  -F "file=@mon_document.pdf"
-```
-
-### Exemple GET /documents
-
-```bash
-curl "http://localhost:8000/api/documents?company_id=techstore_123"
-```
-
-### Exemple POST /chat
+### Exemple POST /api/chat
 
 ```bash
 curl -X POST http://localhost:8000/api/chat \
   -H "Content-Type: application/json" \
   -d '{
-    "company_id": "techstore_123",
     "email": "user@example.com",
-    "message": "Quels sont vos delais de livraison?"
+    "message": "Quel est le chiffre d'\''affaires par région ?"
   }'
 ```
 
-> **Note** : Le `company_id` est obligatoire et permet de filtrer les documents RAG par entreprise.
+**Réponse** :
+```json
+{
+  "status": "queued",
+  "email": "user@example.com"
+}
+```
+
+### Exemple GET /stream/{email}
+
+```bash
+curl http://localhost:8000/api/stream/user@example.com
+```
+
+**Réponse SSE** (stream) :
+```
+data: {"type":"thinking","data":{"content":"Je vais analyser..."}}
+
+data: {"type":"tool_call_start","data":{"name":"query_data","args":{"query":"SELECT..."}}}
+
+data: {"type":"tool_call_result","data":{"result":"[...]"}}
+
+data: {"type":"plotly","data":{"json":"{\"data\":[...],\"layout\":{...}}"}}
+
+data: {"type":"done","data":{}}
+```
+
+## Frontend - Système de Blocs
+
+Le frontend affiche les réponses de l'agent sous forme de **blocs typés** avec animations fluides :
+
+### Types de Blocs
+
+| Type | Composant | Description | Animations |
+|------|-----------|-------------|-----------|
+| **Thinking** | `ThinkingBlock.tsx` | Réflexion de l'agent (markdown, collapsible) | Collapsible avec fade-out (1.6s) |
+| **Text** | `StreamingText.tsx` | Réponse texte (markdown avec GFM) | Curseur de typing |
+| **Tool Call** | `ToolCallBlock.tsx` | Appel d'outil (nom + args + result collapsibles) | Collapsible avec fade-out (1.6s) |
+| **Plotly** | `PlotlyChart.tsx` | Visualisation interactive Plotly.js | Responsive |
+| **Data Table** | `DataTable.tsx` | Table de données avec scroll | Stripe rows |
+| **Error** | `Alert` (Radix UI) | Messages d'erreur | Variant destructive |
+
+### Animations Collapsibles
+
+Les `ThinkingBlock` et `ToolCallBlock` utilisent des animations CSS personnalisées :
+
+- **Ouverture** : `collapsible-down` (500ms ease-out)
+- **Fermeture** : Fade-out (1000ms opacity → 30%) + délai 1600ms + `collapsible-up` (500ms)
+- **Cascade** : Les blocs se ferment quand le bloc suivant est **terminé** (pas quand il commence)
+
+**Configuration** : `frontend/tailwind.config.js`
+```js
+keyframes: {
+  'collapsible-down': {
+    from: { height: '0' },
+    to: { height: 'var(--radix-collapsible-content-height)' },
+  },
+  'collapsible-up': {
+    from: { height: 'var(--radix-collapsible-content-height)' },
+    to: { height: '0' },
+  },
+}
+```
+
+### Types TypeScript
+
+Le frontend utilise des **discriminated unions** pour la type-safety :
+
+**SSEEvent** (`frontend/src/types/chat.ts`) :
+```typescript
+export type SSEEvent =
+  | { type: 'thinking'; data: { content: string } }
+  | { type: 'text'; data: { content: string } }
+  | { type: 'tool_call_start'; data: { name: string; args: Record<string, unknown> } }
+  | { type: 'tool_call_result'; data: { result: string } }
+  | { type: 'plotly'; data: { json: string } }
+  | { type: 'data_table'; data: { json: string } }
+  | { type: 'done'; data: Record<string, never> }
+  | { type: 'error'; data: { message: string } }
+```
+
+**Block types** (tous les blocs ont un champ `done: boolean`) :
+```typescript
+export type Block =
+  | ThinkingBlock    // { id, type: 'thinking', content, done }
+  | TextBlock        // { id, type: 'text', content, done }
+  | ToolCallBlock    // { id, type: 'tool_call', name, args, result, done }
+  | PlotlyBlock      // { id, type: 'plotly', json, done }
+  | DataTableBlock   // { id, type: 'data_table', json, done }
+  | ErrorBlock       // { id, type: 'error', message, done }
+```
+
+### State Management
+
+Le hook `useChat` gère le state via **functional updates** directes sur `streamingBlocks` :
+
+```
+streamingBlocks (useState)  ← Functional updates (setStreamingBlocks(prev => ...))
+       ↓
+MessageList                 ← Affiche les blocs
+```
+
+**Helpers factorisés** :
+- `appendContentChunk(type, content)` — concatène ou crée un bloc THINKING/TEXT
+- `appendJsonBlock(type, json)` — ajoute un bloc PLOTLY/DATA_TABLE instantané
+- `commitMessage(extraBlocks?)` — finalise les blocs et copie dans messages[]
+- `resetStreamingState()` — reset des refs et du loading
+- `ensureBlockConsistency(blocks)` — garantit qu'un seul bloc a `done:false` (celui identifié par `streamingBlockIdRef`)
+
+**Rendu unifié avec key stable** : Le message streaming et le message finalisé partagent le même React `key` → l'instance du composant est préservée → les animations fonctionnent correctement.
 
 ## Configuration
 
-Variables d'environnement (`.env`):
+Variables d'environnement (`.env`) :
 
 ```bash
-# LLM Provider ("ollama", "mistral" ou "openai")
-LLM_PROVIDER=ollama
-OLLAMA_MODEL=qwen2.5:7b
-OLLAMA_BASE_URL=http://localhost:11434
+# === LLM (Mistral via PydanticAI) ===
+MODEL=mistral:magistral-small-latest
+MISTRAL_API_KEY=votre_cle_api_mistral
 
-# Embedding Provider (optionnel, defaut = LLM_PROVIDER)
-# Permet d'utiliser un provider d'embedding different du LLM
-# Valeurs: ollama, mistral, openai, huggingface
-EMBEDDING_PROVIDER=huggingface
-HUGGINGFACE_EMBEDDING_MODEL=intfloat/multilingual-e5-large
-
-# Mistral (si LLM_PROVIDER=mistral)
-MISTRAL_API_KEY=votre_cle
-MISTRAL_MODEL=mistral-small-latest
-
-# OpenAI (si LLM_PROVIDER=openai)
-OPENAI_API_KEY=votre_cle
-OPENAI_MODEL=gpt-4o-mini
-
-# Redis
+# === MESSAGING (Redis) ===
 REDIS_URL=redis://localhost:6379
-
-# PostgreSQL
-POSTGRES_HOST=localhost
-POSTGRES_PORT=5432
-POSTGRES_DB=agent_memory
-POSTGRES_USER=postgres
-POSTGRES_PASSWORD=postgres
-
-# RAG / pgvector
-PGVECTOR_COLLECTION_NAME=documents
-DOCUMENTS_PATH=./documents
-CHUNK_SIZE=1000
-CHUNK_OVERLAP=200
-
-# Google Cloud Storage (upload de documents PDF)
-GCS_BUCKET_NAME=votre-bucket-name
-GCS_PROJECT_ID=votre-project-id
-GCS_SERVICE_ACCOUNT_KEY={"type":"service_account","project_id":"...","private_key":"...","client_email":"..."}
-# MAX_UPLOAD_SIZE_BYTES=10485760
 ```
 
-## Concepts Cles
+**Note** : Seul Mistral est supporté actuellement. Pour d'autres LLMs, modifier `agent/agent.py`.
 
-### RAG Direct (Retrieval Augmented Generation)
+## Architecture Event-Driven
 
-L'agent utilise pgvector (extension PostgreSQL) pour le stockage vectoriel avec une approche **RAG Direct** :
-la recherche en base est effectuee **systematiquement avant chaque appel LLM**, et le contexte est injecte dans le message.
+### Redis Pub/Sub Channels
 
-1. **Indexation** : PDFs → Chunks → Embeddings → pgvector (avec `company_id`)
-2. **Query** : Question → Recherche semantique (filtree par `company_id`) → Contexte injecte dans le message → LLM → Reponse
+| Channel | Direction | Contenu |
+|---------|-----------|---------|
+| `inbox:{email}` | Backend → Agent | Requêtes utilisateur |
+| `outbox:{email}` | Agent → Backend | Événements SSE (thinking, tool_call, plotly, etc.) |
 
-```
-User: "Quels sont vos delais ?"
-  │
-  ▼
-chat() → rag_service.search_formatted(query, company_id)
-  │
-  ├─ Aucun document → "Je n'ai pas cette information." (pas d'appel LLM)
-  │
-  └─ Documents trouves → Message enrichi:
-       "CONTEXTE DOCUMENTAIRE:\n{contexte}\n\n---\nQUESTION: {question}"
-         │
-         ▼
-       LLM repond en se basant uniquement sur le contexte
-```
+### Événements SSE
+
+L'agent streame 8 types d'événements :
+
+1. **thinking** : Réflexion de l'agent (chunks de texte)
+2. **text** : Réponse texte finale (chunks)
+3. **tool_call_start** : Début d'exécution d'un outil (nom + args)
+4. **tool_call_result** : Résultat d'exécution (result string)
+5. **plotly** : Visualisation Plotly (JSON)
+6. **data_table** : Table de données (JSON avec columns + data)
+7. **done** : Fin du streaming
+8. **error** : Erreur survenue
+
+### PydanticAI Tools
+
+L'agent dispose de 2 outils :
+
+**query_data** (`agent/tools/query_data.py`) :
+- Exécute des requêtes SQL sur les datasets CSV via DuckDB
+- Paramètres : `query` (SQL), `dataset_name` (optionnel)
+- Retourne : Résultats JSON + marqueurs spéciaux (`PLOTLY_JSON:`, `TABLE_JSON:`)
+
+**visualize** (`agent/tools/visualize.py`) :
+- Génère des visualisations Plotly à partir de données
+- Paramètres : `data` (JSON), `chart_type`, `x_column`, `y_column`, `title`
+- Retourne : Figure Plotly JSON avec marqueur `PLOTLY_JSON:`
+
+### Marqueurs de Résultats
+
+Les outils injectent des marqueurs dans leurs résultats pour que l'agent parse et streame les visualisations :
 
 ```python
-# Agent sans RAG
-agent = SimpleAgent()
-
-# Agent avec RAG active (recherche systematique avant LLM)
-agent = SimpleAgent(enable_rag=True)
+# Dans tool result
+f"PLOTLY_JSON:{json.dumps(fig.to_dict())}"
+f"TABLE_JSON:{df.to_json()}"
 ```
 
-### Multi-tenant (Filtrage par company_id)
+L'agent (`data_analysis_agent.py`) détecte ces marqueurs et émet des événements SSE `plotly` ou `data_table` séparément.
 
-Le systeme supporte l'isolation des donnees par entreprise :
+## Technologies Frontend Détaillées
 
+### React + TypeScript
+
+- **React 18.2.0** avec StrictMode
+- **TypeScript 5.9.3** strict mode (tous flags activés)
+- **Vite 5.0.12** pour dev server et build ultra-rapide
+- Path alias `@/*` → `./src/*`
+
+### UI Stack
+
+- **shadcn/ui** : Composants headless accessibles (basés sur Radix UI)
+- **Radix UI** : Primitives non-stylées (Collapsible, ScrollArea, Avatar, Alert, etc.)
+- **Tailwind CSS 3.4.19** avec plugin animate
+- **Lucide React** : 560+ icônes SVG
+- **class-variance-authority** : Gestion des variants de composants
+
+### Markdown & Visualisation
+
+- **React Markdown 10.1.0** avec remark-gfm (GitHub Flavored Markdown)
+- **Plotly.js** : Charts interactifs (zoom, pan, hover)
+- **react-plotly.js** : Wrapper React pour Plotly
+
+### Routing
+
+- **React Router 7.13.0** : Routing (actuellement single-page, mais prêt pour expansion)
+
+### Styling
+
+- **Tailwind CSS** avec système de tokens HSL
+- **Dark mode** support (class-based)
+- **CSS variables** pour theming (`--background`, `--foreground`, etc.)
+- **Custom animations** : `collapsible-down` / `collapsible-up` (500ms ease-out)
+
+## Concepts Clés
+
+### Agent PydanticAI
+
+L'agent est créé avec le framework **PydanticAI** (pas LangChain) :
+
+```python
+# agent/agent.py
+from pydantic_ai import Agent
+
+agent = Agent(
+    model="mistral:magistral-small-latest",
+    system_prompt=SYSTEM_PROMPT,
+    tools=[query_data, visualize],
+)
 ```
-┌─────────────────────────────────────────────────────────────┐
-│  Frontend envoie: { company_id, email, message }            │
-└─────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────┐
-│  Agent extrait company_id et filtre les documents RAG       │
-│  → Seuls les documents avec metadata.company_id = X         │
-│    sont retournes par la recherche semantique               │
-└─────────────────────────────────────────────────────────────┘
+
+**Avantages PydanticAI** :
+- Type-safe avec Pydantic models
+- Intégration native avec Mistral
+- Streaming built-in
+- Tools avec validation automatique des paramètres
+
+### DuckDB In-Memory SQL
+
+L'agent utilise **DuckDB** pour exécuter des requêtes SQL sur les CSV :
+
+```python
+import duckdb
+
+conn = duckdb.connect()
+conn.execute(f"CREATE TABLE sales AS SELECT * FROM 'data/sales.csv'")
+result = conn.execute(query).fetchdf()  # → Pandas DataFrame
 ```
 
-**Indexation** :
+**Avantages** :
+- Pas de setup base de données
+- Requêtes SQL ultra-rapides sur CSV
+- Support complet SQL ANSI
+- Jointures, agrégations, window functions
+
+### Plotly Visualisations
+
+Les visualisations sont générées via **Plotly** et rendues dans le frontend :
+
+```python
+import plotly.express as px
+
+fig = px.bar(df, x='region', y='revenue', title='CA par région')
+return f"PLOTLY_JSON:{json.dumps(fig.to_dict())}"
+```
+
+Le frontend parse le JSON et affiche le chart interactif avec zoom/pan/hover.
+
+### Streaming SSE Architecture
+
+**Backend** : Passe-plat qui retransmet les événements Redis vers SSE
+```python
+async for message in broker.subscribe(f"outbox:{email}"):
+    yield f"data: {message}\n\n"
+```
+
+**Agent** : Streame chaque morceau de réponse
+```python
+async for chunk in agent.run_stream(message):
+    await channel.publish(f"outbox:{email}", {
+        "type": "text",
+        "data": {"content": chunk}
+    })
+```
+
+**Frontend** : Reçoit et affiche en temps réel
+```typescript
+const eventSource = new EventSource(`/api/stream/${email}`)
+eventSource.onmessage = (event) => {
+  const data: SSEEvent = JSON.parse(event.data)
+  handleSSEMessage(data)  // Ajoute/met à jour les blocs
+}
+```
+
+### Optimisations Frontend
+
+1. **React.memo** sur `BlockRenderer`, `ToolCallBlock`, `ThinkingBlock` → évite les re-renders inutiles
+2. **useMemo** pour `allMessages` → fusion optimisée messages finalisés + streaming
+3. **Functional updates** pour `setStreamingBlocks` → lecture de la dernière valeur même en cas d'événements SSE rapides
+4. **Stable keys** : `streamingMessageId` partagé entre streaming et finalisé → préserve l'instance React
+5. **Animations CSS** au lieu de JS → performance GPU
+
+## Configuration Avancée
+
+### Variables d'Environnement
+
 ```bash
-# Documents de l'entreprise A
-python main.py index-documents --company-id entreprise_A --documents-path ./docs/A
+# === LLM ===
+MODEL=mistral:magistral-small-latest      # Modèle Mistral
+MISTRAL_API_KEY=sk-...                     # Clé API Mistral
 
-# Documents de l'entreprise B
-python main.py index-documents --company-id entreprise_B --documents-path ./docs/B
+# === REDIS ===
+REDIS_URL=redis://localhost:6379           # URL Redis
+
+# === AGENT (optionnel) ===
+CHANNEL_TYPE=redis                         # "redis" ou "memory" (défaut: redis)
 ```
 
-**Frontend** :
-```jsx
-<ChatWidget companyId="entreprise_A" />
+### Mode Développement (Sans Redis)
+
+Pour développer sans Redis :
+
+```bash
+# Lancer l'agent en mode in-memory
+python main.py serve --channel-type memory
 ```
 
-**Isolation garantie** : Les requetes de `entreprise_A` ne voient jamais les documents de `entreprise_B`.
+**Note** : En mode `memory`, le backend et l'agent doivent partager le même process. Utiliser uniquement pour les tests.
 
-### Gestion des Documents (Upload PDF)
+## Architecture Détaillée
 
-Les documents PDF peuvent etre uploades depuis le frontend et stockes dans Google Cloud Storage.
-Les metadonnees (nom, taille, date) sont enregistrees dans PostgreSQL.
+### Backend (FastAPI)
 
+**Responsabilités** :
+- Recevoir les requêtes HTTP (`POST /chat`)
+- Publier dans Redis (`inbox:{email}`)
+- Souscrire aux réponses (`outbox:{email}`)
+- Streamer via SSE vers le frontend
+
+**Pas de logique métier** : Le backend ne fait aucun traitement IA, il est un simple relay.
+
+### Agent Worker
+
+**Responsabilités** :
+- Écouter Redis (`inbox:*`)
+- Exécuter l'agent PydanticAI
+- Streamer les événements (thinking, tool_call, text, plotly, etc.)
+- Publier dans Redis (`outbox:{email}`)
+
+**Outils disponibles** :
+1. `query_data` : SQL queries via DuckDB
+2. `visualize` : Génération de charts Plotly
+
+### Frontend React
+
+**Architecture** :
 ```
-Frontend (/documents)          Backend (FastAPI)            GCS + PostgreSQL
-   │                                 │                          │
-   ├── POST /documents/upload ─────► │                          │
-   │   (multipart + company_id)      ├── upload fichier ──────► │ GCS: bucket/{company_id}/{id}.pdf
-   │                                 ├── save metadata ───────► │ PostgreSQL: table documents
-   │   ◄── {status: "uploaded"} ─────┤                          │
-   │                                 │                          │
-   ├── GET /documents ──────────────►│                          │
-   │   (company_id)                  ├── SELECT * ────────────► │ PostgreSQL
-   │   ◄── [liste documents] ───────┤                          │
-   │                                 │                          │
-   ├── DELETE /documents/{id} ──────►│                          │
-   │   (company_id)                  ├── delete blob ─────────► │ GCS
-   │                                 ├── DELETE row ──────────► │ PostgreSQL
-   │   ◄── {status: "deleted"} ─────┤                          │
+App.tsx
+  └── ChatPage.tsx (useChat hook)
+      ├── Header (email, disconnect button)
+      ├── MessageList (useSSE hook)
+      │   └── Messages (User + Assistant)
+      │       └── Blocks (Thinking, ToolCall, Text, Plotly, DataTable)
+      └── ChatInput
 ```
 
-**Frontend** : Accessible via `http://localhost:3000/documents`
+**State Flow** :
+```
+useChat hook
+  ├── messages[] (finalisés)
+  ├── streamingBlocks[] (en cours)
+  ├── isLoading
+  └── streamingMessageId (key stable pour React)
 
-**Isolation multi-tenant** : Chaque requete necessite un `company_id`. Les documents d'une entreprise ne sont jamais visibles par une autre.
+useSSE hook
+  ├── connect() / disconnect()
+  └── EventSource → handleSSEMessage → updateBlocks
+```
 
-### Architecture Event-Driven
+**Rendu unifié** :
+```typescript
+const allMessages = useMemo(() => {
+  if (isLoading && streamingBlocks.length > 0 && streamingMessageId) {
+    return [
+      ...messages,
+      { id: streamingMessageId, role: 'assistant', blocks: streamingBlocks }
+    ]
+  }
+  return messages
+}, [messages, streamingBlocks, isLoading, streamingMessageId])
+```
 
-- **Redis Pub/Sub** pour la communication asynchrone
-- **SSE** pour le streaming temps reel vers le frontend
-- **Worker** decouple pour le traitement des messages
+Le même `streamingMessageId` est utilisé pendant le streaming ET après finalisation → React préserve l'instance du composant → les animations de fermeture fonctionnent.
 
-### Memoire Persistante
+## Troubleshooting
 
-- **PostgreSQL** via LangGraph checkpointer
-- Historique par `thread_id` (email utilisateur)
-- Reprise de conversation entre sessions
+### Redis Connection Error
+
+```bash
+# Vérifier que Redis tourne
+docker ps | grep redis
+
+# Relancer Redis
+docker-compose up -d redis
+```
+
+### Agent ne reçoit pas les messages
+
+```bash
+# Vérifier les logs du worker
+python main.py serve
+
+# Devrait afficher :
+# "Agent worker started, listening on inbox:*"
+# "Received message for user@example.com"
+```
+
+### Frontend ne reçoit pas les événements SSE
+
+1. Vérifier que le backend tourne sur port 8000
+2. Vérifier la connexion SSE dans DevTools Network
+3. Vérifier que le proxy Vite est configuré (`/api` → `http://localhost:8000`)
+
+### Mistral API Error
+
+```bash
+# Vérifier la clé API
+echo $MISTRAL_API_KEY
+
+# Tester manuellement
+curl https://api.mistral.ai/v1/models \
+  -H "Authorization: Bearer $MISTRAL_API_KEY"
+```
+
+## Développement
+
+### Ajouter un nouveau dataset
+
+1. Placer le fichier CSV dans `data/`
+2. Mettre à jour `agent/prompt.py` avec la description du dataset
+3. Relancer l'agent worker
+
+### Ajouter un nouveau type de bloc
+
+1. Définir l'interface dans `frontend/src/types/chat.ts`
+2. Ajouter le composant dans `frontend/src/components/messages/`
+3. Ajouter le case dans `BlockRenderer` (`AssistantMessage.tsx`)
+4. Définir l'événement SSE correspondant dans `chat.ts`
+
+### Modifier les animations
+
+Éditer `frontend/tailwind.config.js` (keyframes) et les composants (durées des `setTimeout` et classes `duration-*`).
 
 ## Licence
 
