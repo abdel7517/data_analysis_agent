@@ -103,7 +103,52 @@ export interface DataTableJSON {
 
 // --- SSE ---
 
-export interface SSEEvent {
-  type: SSEEventType
-  data: Record<string, unknown>
+interface SSEThinkingEvent {
+  type: SSEEventType.THINKING
+  data: { content: string }
 }
+
+interface SSETextEvent {
+  type: SSEEventType.TEXT
+  data: { content: string }
+}
+
+interface SSEToolCallStartEvent {
+  type: SSEEventType.TOOL_CALL_START
+  data: { name: string; args: Record<string, unknown> }
+}
+
+interface SSEToolCallResultEvent {
+  type: SSEEventType.TOOL_CALL_RESULT
+  data: { result: string }
+}
+
+interface SSEPlotlyEvent {
+  type: SSEEventType.PLOTLY
+  data: { json: string }
+}
+
+interface SSEDataTableEvent {
+  type: SSEEventType.DATA_TABLE
+  data: { json: string }
+}
+
+interface SSEDoneEvent {
+  type: SSEEventType.DONE
+  data: Record<string, never>
+}
+
+interface SSEErrorEvent {
+  type: SSEEventType.ERROR
+  data: { message: string }
+}
+
+export type SSEEvent =
+  | SSEThinkingEvent
+  | SSETextEvent
+  | SSEToolCallStartEvent
+  | SSEToolCallResultEvent
+  | SSEPlotlyEvent
+  | SSEDataTableEvent
+  | SSEDoneEvent
+  | SSEErrorEvent

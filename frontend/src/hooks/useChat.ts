@@ -10,6 +10,7 @@ const nextMessageId = () => `msg-${++messageIdCounter}`
 
 export function useChat(email: string) {
   const [messages, setMessages] = useState<Message[]>([])
+  // State provoquant le rendu des blocs en streaming
   const [streamingBlocks, setStreamingBlocks] = useState<Block[]>([])
   const [isLoading, setIsLoading] = useState(false)
 
@@ -46,9 +47,12 @@ export function useChat(email: string) {
       (b) => b.type === BlockType.TOOL_CALL && b.status === ToolCallStatus.RUNNING
     )
     if (idx !== -1) {
-      const updated = [...blocks]
-      updated[idx] = { ...updated[idx], status: ToolCallStatus.DONE } as Block
-      blocksRef.current = updated
+      const block = blocks[idx]
+      if (block.type === BlockType.TOOL_CALL) {
+        const updated = [...blocks]
+        updated[idx] = { ...block, status: ToolCallStatus.DONE }
+        blocksRef.current = updated
+      }
     }
   }
 
@@ -61,12 +65,12 @@ export function useChat(email: string) {
       case SSEEventType.THINKING: {
         const last = getLastBlock()
         if (last && last.type === BlockType.THINKING) {
-          updateLastBlock((b) => ({
-            ...b,
-            content: (b as { content: string }).content + (data.data.content as string),
-          }))
+          updateLastBlock((b) => {
+            if (b.type !== BlockType.THINKING) return b
+            return { ...b, content: b.content + data.data.content }
+          })
         } else {
-          addBlock({ type: BlockType.THINKING, content: data.data.content as string })
+          addBlock({ type: BlockType.THINKING, content: data.data.content })
         }
         break
       }
@@ -74,12 +78,12 @@ export function useChat(email: string) {
       case SSEEventType.TEXT: {
         const last = getLastBlock()
         if (last && last.type === BlockType.TEXT) {
-          updateLastBlock((b) => ({
-            ...b,
-            content: (b as { content: string }).content + (data.data.content as string),
-          }))
+          updateLastBlock((b) => {
+            if (b.type !== BlockType.TEXT) return b
+            return { ...b, content: b.content + data.data.content }
+          })
         } else {
-          addBlock({ type: BlockType.TEXT, content: data.data.content as string })
+          addBlock({ type: BlockType.TEXT, content: data.data.content })
         }
         break
       }
@@ -87,8 +91,8 @@ export function useChat(email: string) {
       case SSEEventType.TOOL_CALL_START: {
         addBlock({
           type: BlockType.TOOL_CALL,
-          name: data.data.name as string,
-          args: data.data.args as Record<string, unknown>,
+          name: data.data.name,
+          args: data.data.args,
           result: null,
           status: ToolCallStatus.RUNNING,
         })
@@ -101,27 +105,26 @@ export function useChat(email: string) {
           (b) => b.type === BlockType.TOOL_CALL && b.status === ToolCallStatus.RUNNING
         )
         if (idx !== -1) {
-          const updated = [...blocks]
-          updated[idx] = {
-            ...updated[idx],
-            result: data.data.result as string,
-            status: ToolCallStatus.DONE,
-          } as Block
-          blocksRef.current = updated
-          updateBlocks()
+          const block = blocks[idx]
+          if (block.type === BlockType.TOOL_CALL) {
+            const updated = [...blocks]
+            updated[idx] = { ...block, result: data.data.result, status: ToolCallStatus.DONE }
+            blocksRef.current = updated
+            updateBlocks()
+          }
         }
         break
       }
 
       case SSEEventType.PLOTLY: {
         markLastToolCallDone()
-        addBlock({ type: BlockType.PLOTLY, json: data.data.json as string })
+        addBlock({ type: BlockType.PLOTLY, json: data.data.json })
         break
       }
 
       case SSEEventType.DATA_TABLE: {
         markLastToolCallDone()
-        addBlock({ type: BlockType.DATA_TABLE, json: data.data.json as string })
+        addBlock({ type: BlockType.DATA_TABLE, json: data.data.json })
         break
       }
 
@@ -142,7 +145,7 @@ export function useChat(email: string) {
       }
 
       case SSEEventType.ERROR: {
-        addBlock({ type: BlockType.ERROR, message: data.data.message as string })
+        addBlock({ type: BlockType.ERROR, message: data.data.message })
         const finalBlocks = [...blocksRef.current]
         const messageId = streamingMessageIdRef.current || nextMessageId()
         setMessages((prev) => [
