@@ -3,8 +3,11 @@ Agent d'analyse de données avec streaming PydanticAI → SSE.
 
 Ce service :
 1. Écoute les messages entrants sur inbox:*
-2. Appelle l'agent PydanticAI via run_stream_events()
+2. Appelle l'agent PydanticAI via agent.iter() (API node-by-node)
 3. Publie chaque événement (thinking, text, tool_call, plotly, etc.) via MessagingService
+
+Note: Utilise agent.iter() au lieu de run_stream_events() pour garantir que
+FunctionToolResultEvent est correctement émis (cf. pydantic-ai#1007).
 """
 
 import asyncio
@@ -17,11 +20,7 @@ import pandas as pd
 from pydantic import BaseModel, ValidationError
 from dependency_injector.wiring import inject, Provide
 
-from pydantic_ai import (
-    AgentRunResultEvent,
-    FunctionToolCallEvent,
-    FunctionToolResultEvent,
-)
+from pydantic_ai import Agent, FunctionToolCallEvent, FunctionToolResultEvent
 from pydantic_ai.messages import (
     PartDeltaEvent,
     PartStartEvent,
@@ -126,82 +125,90 @@ class DataAnalysisAgent:
     async def _stream_events_to_user(
         self, messaging: MessagingService, parsed: _ParsedMessage
     ):
-        """Itère run_stream_events() et publie chaque événement typé."""
+        """Itère agent.iter() et publie chaque événement typé."""
         context = AgentContext(
             datasets=self._datasets.copy(),
             dataset_info=self._dataset_info,
             email=parsed.email,
         )
 
-        async for event in self._agent.run_stream_events(
-            parsed.message, deps=context
-        ):
-            if isinstance(event, PartStartEvent):
-                if isinstance(event.part, ThinkingPart) and event.part.content:
-                    await messaging.publish_event(
-                        parsed.email,
-                        SSEEventType.THINKING,
-                        {"content": event.part.content},
-                    )
-                elif isinstance(event.part, TextPart) and event.part.content:
-                    await messaging.publish_event(
-                        parsed.email,
-                        SSEEventType.TEXT,
-                        {"content": event.part.content},
-                    )
+        async with self._agent.iter(parsed.message, deps=context) as run:
+            async for node in run:
+                # --- Model Request Node : génère du texte/thinking ---
+                if Agent.is_model_request_node(node):
+                    async with node.stream(run.ctx) as stream:
+                        async for event in stream:
+                            if isinstance(event, PartStartEvent):
+                                if isinstance(event.part, ThinkingPart) and event.part.content:
+                                    await messaging.publish_event(
+                                        parsed.email,
+                                        SSEEventType.THINKING,
+                                        {"content": event.part.content},
+                                    )
+                                elif isinstance(event.part, TextPart) and event.part.content:
+                                    await messaging.publish_event(
+                                        parsed.email,
+                                        SSEEventType.TEXT,
+                                        {"content": event.part.content},
+                                    )
 
-            elif isinstance(event, PartDeltaEvent):
-                if isinstance(event.delta, ThinkingPartDelta):
-                    await messaging.publish_event(
-                        parsed.email,
-                        SSEEventType.THINKING,
-                        {"content": event.delta.content_delta},
-                    )
-                elif isinstance(event.delta, TextPartDelta):
-                    await messaging.publish_event(
-                        parsed.email,
-                        SSEEventType.TEXT,
-                        {"content": event.delta.content_delta},
-                    )
+                            elif isinstance(event, PartDeltaEvent):
+                                if isinstance(event.delta, ThinkingPartDelta):
+                                    await messaging.publish_event(
+                                        parsed.email,
+                                        SSEEventType.THINKING,
+                                        {"content": event.delta.content_delta},
+                                    )
+                                elif isinstance(event.delta, TextPartDelta):
+                                    await messaging.publish_event(
+                                        parsed.email,
+                                        SSEEventType.TEXT,
+                                        {"content": event.delta.content_delta},
+                                    )
 
-            elif isinstance(event, FunctionToolCallEvent):
-                await messaging.publish_event(
-                    parsed.email,
-                    SSEEventType.TOOL_CALL_START,
-                    {
-                        "name": event.part.tool_name,
-                        "args": event.part.args,
-                    },
-                )
+                # --- Call Tools Node : exécute les tools et retourne les résultats ---
+                elif Agent.is_call_tools_node(node):
+                    async with node.stream(run.ctx) as stream:
+                        async for event in stream:
+                            if isinstance(event, FunctionToolCallEvent):
+                                await messaging.publish_event(
+                                    parsed.email,
+                                    SSEEventType.TOOL_CALL_START,
+                                    {
+                                        "name": event.part.tool_name,
+                                        "args": event.part.args,
+                                    },
+                                )
 
-            elif isinstance(event, FunctionToolResultEvent):
-                result_str = str(event.result.content)
+                            elif isinstance(event, FunctionToolResultEvent):
+                                result_str = str(event.result.content)
 
-                if ToolResultMarker.PLOTLY_JSON in result_str:
-                    plotly_json = result_str.split(ToolResultMarker.PLOTLY_JSON, 1)[1]
-                    await messaging.publish_event(
-                        parsed.email,
-                        SSEEventType.PLOTLY,
-                        {"json": json.loads(plotly_json)},
-                    )
-                elif ToolResultMarker.TABLE_JSON in result_str:
-                    table_json = result_str.split(ToolResultMarker.TABLE_JSON, 1)[1]
-                    await messaging.publish_event(
-                        parsed.email,
-                        SSEEventType.DATA_TABLE,
-                        {"json": json.loads(table_json)},
-                    )
-                else:
-                    await messaging.publish_event(
-                        parsed.email,
-                        SSEEventType.TOOL_CALL_RESULT,
-                        {
-                            "tool_call_id": event.tool_call_id,
-                            "result": result_str,
-                        },
-                    )
-
-            elif isinstance(event, AgentRunResultEvent):
-                break
+                                if ToolResultMarker.PLOTLY_JSON in result_str:
+                                    plotly_json = result_str.split(
+                                        ToolResultMarker.PLOTLY_JSON, 1
+                                    )[1]
+                                    await messaging.publish_event(
+                                        parsed.email,
+                                        SSEEventType.PLOTLY,
+                                        {"json": json.loads(plotly_json)},
+                                    )
+                                elif ToolResultMarker.TABLE_JSON in result_str:
+                                    table_json = result_str.split(
+                                        ToolResultMarker.TABLE_JSON, 1
+                                    )[1]
+                                    await messaging.publish_event(
+                                        parsed.email,
+                                        SSEEventType.DATA_TABLE,
+                                        {"json": json.loads(table_json)},
+                                    )
+                                else:
+                                    await messaging.publish_event(
+                                        parsed.email,
+                                        SSEEventType.TOOL_CALL_RESULT,
+                                        {
+                                            "tool_call_id": event.tool_call_id,
+                                            "result": result_str,
+                                        },
+                                    )
 
         await messaging.publish_event(parsed.email, SSEEventType.DONE, {}, done=True)
