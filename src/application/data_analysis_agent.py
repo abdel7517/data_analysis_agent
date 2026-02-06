@@ -125,17 +125,30 @@ class DataAnalysisAgent:
     async def _stream_events_to_user(
         self, messaging: MessagingService, parsed: _ParsedMessage
     ):
-        """Itère agent.iter() et publie chaque événement typé."""
+        """Itère agent.iter() et publie chaque événement typé.
+
+        Stratégie de streaming :
+        - Thinking → streamé immédiatement comme THINKING
+        - Text → streamé comme THINKING + buffered pour réponse finale
+        - Tool call → reset du buffer (le texte avant était du code/réflexion)
+        - End → envoyer le buffer comme TEXT (réponse finale)
+        """
         context = AgentContext(
             datasets=self._datasets.copy(),
             dataset_info=self._dataset_info,
             email=parsed.email,
         )
 
+        # Buffer pour la réponse finale (reset à chaque tool call)
+        final_text_buffer = ""
+
         async with self._agent.iter(parsed.message, deps=context) as run:
             async for node in run:
+                logger.info(f"[NODE] Type: {type(node).__name__}")
+
                 # --- Model Request Node : génère du texte/thinking ---
                 if Agent.is_model_request_node(node):
+                    logger.info("[NODE] → ModelRequestNode")
                     async with node.stream(run.ctx) as stream:
                         async for event in stream:
                             if isinstance(event, PartStartEvent):
@@ -146,9 +159,11 @@ class DataAnalysisAgent:
                                         {"content": event.part.content},
                                     )
                                 elif isinstance(event.part, TextPart) and event.part.content:
+                                    # Streamer comme THINKING + buffer pour réponse finale
+                                    final_text_buffer += event.part.content
                                     await messaging.publish_event(
                                         parsed.email,
-                                        SSEEventType.TEXT,
+                                        SSEEventType.THINKING,
                                         {"content": event.part.content},
                                     )
 
@@ -160,16 +175,23 @@ class DataAnalysisAgent:
                                         {"content": event.delta.content_delta},
                                     )
                                 elif isinstance(event.delta, TextPartDelta):
+                                    # Streamer comme THINKING + buffer pour réponse finale
+                                    final_text_buffer += event.delta.content_delta
                                     await messaging.publish_event(
                                         parsed.email,
-                                        SSEEventType.TEXT,
+                                        SSEEventType.THINKING,
                                         {"content": event.delta.content_delta},
                                     )
 
                 # --- Call Tools Node : exécute les tools et retourne les résultats ---
                 elif Agent.is_call_tools_node(node):
+                    logger.info("[NODE] → CallToolsNode")
+
                     async with node.stream(run.ctx) as stream:
                         async for event in stream:
+                            logger.info(f"[TOOL_EVENT] {type(event).__name__}")
+                            # Reset du buffer : le texte avant était du code/réflexion, pas la réponse finale
+                            final_text_buffer = ""
                             if isinstance(event, FunctionToolCallEvent):
                                 await messaging.publish_event(
                                     parsed.email,
@@ -211,4 +233,21 @@ class DataAnalysisAgent:
                                         },
                                     )
 
-        await messaging.publish_event(parsed.email, SSEEventType.DONE, {}, done=True)
+                # --- End Node : envoyer la réponse finale et terminer ---
+                elif Agent.is_end_node(node):
+                    logger.info(f"[NODE] → EndNode | buffer_len={len(final_text_buffer)}")
+
+                    if final_text_buffer.strip():
+                        logger.info("[END] Envoi du TEXT final")
+                        await messaging.publish_event(
+                            parsed.email,
+                            SSEEventType.TEXT,
+                            {"content": final_text_buffer},
+                        )
+                    else:
+                        logger.info("[END] Buffer vide, pas d'envoi TEXT")
+
+                    await messaging.publish_event(
+                        parsed.email, SSEEventType.DONE, {}, done=True
+                    )
+                    logger.info("[END] DONE envoyé")
