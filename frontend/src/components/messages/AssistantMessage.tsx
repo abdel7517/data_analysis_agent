@@ -6,7 +6,7 @@ import { ThinkingBlock } from './ThinkingBlock'
 import { ToolCallBlock } from './ToolCallBlock'
 import { PlotlyChart } from './PlotlyChart'
 import { DataTable } from './DataTable'
-import { StreamingText } from './StreamingText'
+import { FinalAnswer } from './FinalAnswer'
 import { BlockType } from '@/types/chat'
 import type { Block } from '@/types/chat'
 
@@ -31,12 +31,7 @@ const BlockRenderer = memo(function BlockRenderer({ block, isActive }: BlockRend
       )
 
     case BlockType.TEXT:
-      return (
-        <StreamingText
-          content={block.content}
-          done={block.done}
-        />
-      )
+      return <FinalAnswer content={block.content} />
 
     case BlockType.TOOL_CALL:
       return (
