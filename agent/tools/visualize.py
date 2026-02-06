@@ -5,7 +5,7 @@ from typing import Literal
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
-from pydantic_ai import RunContext
+from pydantic_ai import ModelRetry, RunContext
 
 from agent.context import AgentContext
 
@@ -30,7 +30,7 @@ async def visualize(
         description: Description of what this visualization shows.
     """
     if ctx.deps.current_dataframe is None:
-        return "Error: No data available. Call query_data first."
+        raise ModelRetry("No data available. Call query_data first to load data.")
 
     df = ctx.deps.current_dataframe
 
@@ -49,7 +49,7 @@ async def visualize(
         if result_type == "figure":
             fig = namespace.get("fig")
             if fig is None:
-                return "Error: Code must create a 'fig' variable (plotly Figure)."
+                raise ModelRetry("Code must create a 'fig' variable (plotly Figure). Fix the code.")
 
             filepath = f"output/{safe_title}.html"
             fig.write_html(filepath)
@@ -81,7 +81,9 @@ async def visualize(
             )
 
         else:
-            return f"Error: Unknown result_type '{result_type}'. Use 'figure' or 'table'."
+            raise ModelRetry(f"Unknown result_type '{result_type}'. Use 'figure' or 'table'.")
 
+    except ModelRetry:
+        raise  # Re-raise ModelRetry
     except Exception as e:
-        return f"Error creating visualization: {e}"
+        raise ModelRetry(f"Visualization failed: {e}. Please fix the code and try again.")

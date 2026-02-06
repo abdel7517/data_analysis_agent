@@ -2,7 +2,7 @@ from pathlib import Path
 
 import duckdb
 import pandas as pd
-from pydantic_ai import RunContext
+from pydantic_ai import ModelRetry, RunContext
 
 from agent.context import AgentContext
 
@@ -45,7 +45,7 @@ async def query_data(
     _load_csv_datasets(ctx)
 
     if not ctx.deps.datasets:
-        return "Error: No datasets loaded. Place CSV files in the data/ directory."
+        raise ModelRetry("No datasets loaded. Place CSV files in the data/ directory.")
 
     try:
         with duckdb.connect(database=":memory:") as conn:
@@ -65,4 +65,4 @@ async def query_data(
         return summary
 
     except Exception as e:
-        return f"Error executing SQL query: {e}"
+        raise ModelRetry(f"SQL query failed: {e}. Please fix the query and try again.")
