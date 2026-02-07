@@ -10,11 +10,24 @@ import argparse
 import asyncio
 import logging
 import sys
+from datetime import datetime
+from pathlib import Path
+
+# Créer le dossier logs s'il n'existe pas
+logs_dir = Path("logs")
+logs_dir.mkdir(exist_ok=True)
+
+# Nom du fichier avec date jj_mm_yyyy
+log_filename = logs_dir / f"{datetime.now().strftime('%d_%m_%Y')}.log"
 
 # Configuration du logging
 logging.basicConfig(
     level=logging.DEBUG,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    handlers=[
+        logging.FileHandler(log_filename, encoding="utf-8"),
+        logging.StreamHandler(),  # Aussi afficher dans la console
+    ]
 )
 logging.getLogger("httpcore").setLevel(logging.WARNING)
 logging.getLogger("httpx").setLevel(logging.WARNING)

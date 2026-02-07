@@ -180,6 +180,25 @@ export function useChat(email: string) {
           done: true,
         }]);
         break;
+
+      case SSEEventType.WARNING:
+        setStreamingBlocks((prev) => {
+          const blocks = ensureBlockConsistency(prev);
+          return [
+            ...blocks,
+            {
+              type: BlockType.WARNING,
+              message: data.data.message,
+              id: nextBlockId(),
+              done: true,
+            },
+          ];
+        });
+        break;
+
+      case SSEEventType.RETRYING:
+        appendContentChunk(BlockType.THINKING, data.data.message);
+        break;
     }
   }, []);
 

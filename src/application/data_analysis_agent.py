@@ -5,12 +5,15 @@ Ce service :
 1. Écoute les messages entrants sur inbox:*
 2. Appelle l'agent PydanticAI via agent.iter() (API node-by-node)
 3. Délègue le streaming aux services spécialisés
+4. Gère le retry automatique pour les visualisations manquantes
 """
 
 import asyncio
 import logging
 
 from pydantic import BaseModel, ValidationError
+from pydantic_ai import Agent
+from pydantic_ai.messages import ModelMessage
 from dependency_injector.wiring import inject, Provide
 
 from agent.agent import create_agent
@@ -19,6 +22,7 @@ from src.application.services.messaging_service import MessagingService
 from src.application.services.cancellation_manager import CancellationManager
 from src.application.services.dataset_loader import DatasetLoader
 from src.application.services.stream_processor import StreamProcessor
+from src.application.services.visualization_retry_manager import VisualizationRetryManager
 from src.infrastructure.container import Container
 
 logger = logging.getLogger(__name__)
@@ -37,6 +41,7 @@ class DataAnalysisAgent:
         self._dataset_loader: DatasetLoader | None = None
         self._cancellation: CancellationManager | None = None
         self._stream_processor: StreamProcessor | None = None
+        self._retry_manager: VisualizationRetryManager | None = None
 
     @inject
     def initialize(
@@ -55,10 +60,12 @@ class DataAnalysisAgent:
         messaging: MessagingService = Provide[Container.messaging_service],
         cancellation: CancellationManager = Provide[Container.cancellation_manager],
         stream_processor: StreamProcessor = Provide[Container.stream_processor],
+        retry_manager: VisualizationRetryManager = Provide[Container.retry_manager],
     ):
         """Écoute les messages entrants et stream les réponses."""
         self._cancellation = cancellation
         self._stream_processor = stream_processor
+        self._retry_manager = retry_manager
         self.initialize()
 
         async with messaging, cancellation:
@@ -74,30 +81,67 @@ class DataAnalysisAgent:
             logger.warning(f"Message invalide: {e}")
             return
 
-        logger.info(f"Message de {parsed.email}: {parsed.message[:50]}...")
+        logger.info(f"[AGENT:{parsed.email}] New request: {parsed.message[:50]}...")
 
         try:
             await self._process_request(parsed)
         except Exception as e:
-            logger.error(f"Erreur pour {parsed.email}: {e}", exc_info=True)
+            logger.error(f"[AGENT:{parsed.email}] Error: {e}", exc_info=True)
             await self._stream_processor.publish_error(parsed.email, str(e))
 
     async def _process_request(self, parsed: _ParsedMessage):
-        """Exécute l'agent et stream les résultats."""
+        """Exécute l'agent avec retry automatique pour les visualisations."""
+        email = parsed.email
         context = AgentContext(
             datasets=self._dataset_loader.datasets,
             dataset_info=self._dataset_loader.info,
-            email=parsed.email,
+            email=email,
         )
-        buffer = ""
 
-        async with self._agent.iter(parsed.message, deps=context) as run:
-            async for node in run:
-                if await self._cancellation.handle_if_cancelled(parsed.email):
+        # Initialiser l'état de retry pour cette requête
+        self._retry_manager.start_request(email)
+
+        prompt = parsed.message
+        message_history: list[ModelMessage] = []
+        run_count = 0
+
+        while True:
+            run_count += 1
+            buffer = ""
+
+            logger.debug(
+                f"[AGENT:{email}] Starting run #{run_count}, "
+                f"history_len={len(message_history)}, prompt_len={len(prompt)}"
+            )
+
+            async with self._agent.iter(
+                prompt,
+                deps=context,
+                message_history=message_history,
+            ) as run:
+                async for node in run:
+
+                    if await self._cancellation.handle_if_cancelled(email):
+                        logger.info(f"[AGENT:{email}] Cancelled during run #{run_count}")
+                        return
+
+                    if Agent.is_end_node(node):
+                        logger.debug(f"[AGENT:{email}] Run #{run_count} ended")
+                        break
+
+                    buffer, _ = await self._stream_processor.process_node(
+                        node, run.ctx, email, buffer
+                    )
+
+                # Évaluer et finaliser ou obtenir les paramètres de retry
+                decision = await self._retry_manager.finalize_or_retry(email, run, buffer)
+
+                if decision is None:
+                    # Finalisé (succès ou erreur) - réponse déjà publiée
+                    logger.info(f"[AGENT:{email}] Request completed after {run_count} run(s)")
                     return
 
-                buffer, is_end = await self._stream_processor.process_node(
-                    node, run.ctx, parsed.email, buffer
-                )
-                if is_end:
-                    return
+                # Retry nécessaire - préparer le prochain run
+                logger.debug(f"[AGENT:{email}] Preparing retry with prompt: {decision.retry_prompt[:50]}...")
+                message_history = decision.message_history
+                prompt = decision.retry_prompt

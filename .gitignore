@@ -32,3 +32,4 @@ docs/
 CLAUDE.md
 */dist
 output/
+logs/

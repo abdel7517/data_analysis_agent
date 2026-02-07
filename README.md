@@ -12,6 +12,8 @@ Agent d'analyse de données intelligent avec streaming temps réel, utilisant **
 - **Interface React TypeScript** moderne avec shadcn/ui
 - **Système de blocs dynamiques** : thinking, text, tool calls, charts, tables
 - **Animations fluides** pour collapsibles avec transitions CSS
+- **Retry automatique** des visualisations via pattern Judge Agent
+- **Annulation** du streaming en cours via signal Pub/Sub
 
 ## Architecture
 
@@ -88,7 +90,9 @@ Frontend              Backend (FastAPI)           Redis           Agent Worker (
 ```
 agent_orbital/
 ├── agent/                               # Agent PydanticAI
-│   ├── agent.py                         # Création de l'agent avec tools
+│   ├── agent.py                         # Création de l'agent principal (streaming)
+│   ├── judge_agent.py                   # Agent judge pour évaluer le besoin de visualisation
+│   ├── models.py                        # AgentResult, AgentJudgment (structured outputs)
 │   ├── context.py                       # AgentContext (datasets, email)
 │   ├── prompt.py                        # System prompt avec info datasets
 │   └── tools/
@@ -123,7 +127,8 @@ agent_orbital/
 │   │       ├── cancellation_manager.py  # Gestion annulation via Pub/Sub
 │   │       ├── dataset_loader.py        # Chargement datasets CSV
 │   │       ├── event_parser.py          # Parsing events PydanticAI
-│   │       └── stream_processor.py      # Traitement stream + publication SSE
+│   │       ├── stream_processor.py      # Traitement stream + publication SSE
+│   │       └── visualization_retry_manager.py  # Retry automatique visualisations
 │   ├── infrastructure/
 │   │   ├── container.py                 # Container DI (channel selector)
 │   │   └── adapters/
@@ -385,11 +390,12 @@ Le frontend affiche les réponses de l'agent sous forme de **blocs typés** avec
 | Type | Composant | Description | Animations |
 |------|-----------|-------------|-----------|
 | **Thinking** | `ThinkingBlock.tsx` | Réflexion de l'agent (markdown, collapsible) | Collapsible avec fade-out (1.6s) |
-| **Text** | `StreamingText.tsx` | Réponse texte (markdown avec GFM) | Curseur de typing |
+| **Text** | `FinalAnswer.tsx` | Réponse texte (markdown avec GFM) | - |
 | **Tool Call** | `ToolCallBlock.tsx` | Appel d'outil (nom + args + result collapsibles) | Collapsible avec fade-out (1.6s) |
 | **Plotly** | `PlotlyChart.tsx` | Visualisation interactive Plotly.js | Responsive |
 | **Data Table** | `DataTable.tsx` | Table de données avec scroll | Stripe rows |
-| **Error** | `Alert` (Radix UI) | Messages d'erreur | Variant destructive |
+| **Error** | `Alert` (Radix UI) | Messages d'erreur (ex: max retries) | Variant destructive (rouge) |
+| **Warning** | `Alert` (Radix UI) | Avertissements | Variant warning (jaune) |
 
 ### Animations Collapsibles
 
@@ -439,6 +445,7 @@ export type Block =
   | PlotlyBlock      // { id, type: 'plotly', json, done }
   | DataTableBlock   // { id, type: 'data_table', json, done }
   | ErrorBlock       // { id, type: 'error', message, done }
+  | WarningBlock     // { id, type: 'warning', message, done }
 ```
 
 ### State Management
@@ -487,7 +494,7 @@ REDIS_URL=redis://localhost:6379
 
 ### Événements SSE
 
-L'agent streame 8 types d'événements :
+L'agent streame 10 types d'événements :
 
 1. **thinking** : Réflexion de l'agent (chunks de texte)
 2. **text** : Réponse texte finale (chunks)
@@ -496,7 +503,44 @@ L'agent streame 8 types d'événements :
 5. **plotly** : Visualisation Plotly (JSON)
 6. **data_table** : Table de données (JSON avec columns + data)
 7. **done** : Fin du streaming
-8. **error** : Erreur survenue
+8. **error** : Erreur survenue (ex: max retries atteint)
+9. **warning** : Avertissement (affiché en jaune)
+10. **retrying** : Notification de retry en cours
+
+### Pattern Judge Agent (Retry Visualisations)
+
+L'agent utilise un pattern "Judge Agent" pour le retry intelligent des visualisations :
+
+```
+User message
+    │
+    ▼
+main_agent.iter() ──── streaming SSE (thinking, tools, text)
+    │
+    ▼
+judge_agent.run() ──── pas de streaming, ~200ms
+    │                   retourne AgentJudgment(needs_visualization)
+    ▼
+VisualizationRetryManager.evaluate_run()
+    │
+    ├─ has_visual=True → publish_final, fin
+    ├─ needs_visualization=False → publish_final, fin
+    └─ needs_visualization=True + no visual → RETRY (max 2 fois)
+```
+
+**Pourquoi ce pattern ?**
+- `output_type=AgentResult` (structured output) casse le streaming avec Mistral
+- Solution : l'agent principal streame du texte naturel (`output_type=str`)
+- Un agent "judge" léger évalue post-run si une visualisation était nécessaire
+
+**Fichiers impliqués** :
+- `agent/judge_agent.py` : Agent judge avec `AgentJudgment` model
+- `src/application/services/visualization_retry_manager.py` : Logique de retry
+- `src/application/data_analysis_agent.py` : Orchestration des runs
+
+**Configuration** :
+- `MAX_RETRIES = 2` dans `visualization_retry_manager.py`
+- Si max retries atteint sans visualisation → message d'erreur au frontend
 
 ### PydanticAI Tools
 

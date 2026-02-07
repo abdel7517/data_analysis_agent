@@ -16,6 +16,8 @@ from src.application.services.cancellation_manager import CancellationManager
 from src.application.services.dataset_loader import DatasetLoader
 from src.application.services.event_parser import EventParser
 from src.application.services.stream_processor import StreamProcessor
+from src.application.services.visualization_retry_manager import VisualizationRetryManager
+from agent.judge_agent import create_judge_agent
 
 logger = logging.getLogger(__name__)
 
@@ -113,9 +115,20 @@ class Container(containers.DeclarativeContainer):
     event_parser = providers.Singleton(EventParser)
     """Service de parsing des events PydanticAI."""
 
+    judge_agent = providers.Singleton(create_judge_agent)
+    """Agent judge pour évaluer le besoin de visualisation."""
+
+    retry_manager = providers.Singleton(
+        VisualizationRetryManager,
+        messaging=messaging_service,
+        judge_agent=judge_agent,
+    )
+    """Manager singleton pour les retries de visualisation."""
+
     stream_processor = providers.Singleton(
         StreamProcessor,
         messaging=messaging_service,
         parser=event_parser,
+        retry_manager=retry_manager,
     )
     """Service de traitement du stream PydanticAI."""

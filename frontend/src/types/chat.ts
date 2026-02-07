@@ -9,6 +9,8 @@ export enum SSEEventType {
   DATA_TABLE = 'data_table',
   DONE = 'done',
   ERROR = 'error',
+  WARNING = 'warning',
+  RETRYING = 'retrying',
 }
 
 export enum BlockType {
@@ -18,6 +20,7 @@ export enum BlockType {
   PLOTLY = 'plotly',
   DATA_TABLE = 'data_table',
   ERROR = 'error',
+  WARNING = 'warning',
 }
 
 // --- Blocks ---
@@ -66,7 +69,14 @@ export interface ErrorBlock {
   done: boolean
 }
 
-export type Block = ThinkingBlock | TextBlock | ToolCallBlock | PlotlyBlock | DataTableBlock | ErrorBlock
+export interface WarningBlock {
+  id: string
+  type: BlockType.WARNING
+  message: string
+  done: boolean
+}
+
+export type Block = ThinkingBlock | TextBlock | ToolCallBlock | PlotlyBlock | DataTableBlock | ErrorBlock | WarningBlock
 
 // Distributive Omit that preserves discriminated unions
 export type BlockWithoutId = {
@@ -143,6 +153,16 @@ interface SSEErrorEvent {
   data: { message: string }
 }
 
+interface SSEWarningEvent {
+  type: SSEEventType.WARNING
+  data: { message: string }
+}
+
+interface SSERetryingEvent {
+  type: SSEEventType.RETRYING
+  data: { message: string }
+}
+
 export type SSEEvent =
   | SSEThinkingEvent
   | SSETextEvent
@@ -152,3 +172,5 @@ export type SSEEvent =
   | SSEDataTableEvent
   | SSEDoneEvent
   | SSEErrorEvent
+  | SSEWarningEvent
+  | SSERetryingEvent

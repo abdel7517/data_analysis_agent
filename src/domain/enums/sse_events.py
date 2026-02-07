@@ -14,6 +14,8 @@ class SSEEventType(StrEnum):
     DATA_TABLE = "data_table"
     DONE = "done"
     ERROR = "error"
+    WARNING = "warning"
+    RETRYING = "retrying"
 
 
 class ToolResultMarker(StrEnum):

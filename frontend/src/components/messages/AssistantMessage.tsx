@@ -1,7 +1,7 @@
 import { memo } from 'react'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Bot, AlertCircle } from 'lucide-react'
+import { Bot, AlertCircle, AlertTriangle } from 'lucide-react'
 import { ThinkingBlock } from './ThinkingBlock'
 import { ToolCallBlock } from './ToolCallBlock'
 import { PlotlyChart } from './PlotlyChart'
@@ -54,6 +54,16 @@ const BlockRenderer = memo(function BlockRenderer({ block, isActive }: BlockRend
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>{block.message}</AlertDescription>
+        </Alert>
+      )
+
+    case BlockType.WARNING:
+      return (
+        <Alert className="border-yellow-500/50 bg-yellow-50 dark:bg-yellow-950/20">
+          <AlertTriangle className="h-4 w-4 text-yellow-600 dark:text-yellow-500" />
+          <AlertDescription className="text-yellow-800 dark:text-yellow-200">
+            {block.message}
+          </AlertDescription>
         </Alert>
       )
 

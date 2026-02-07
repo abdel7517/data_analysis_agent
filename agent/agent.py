@@ -8,11 +8,11 @@ from agent.tools.query_data import query_data
 from agent.tools.visualize import visualize
 
 
-def create_agent(dataset_info: str) -> Agent[AgentContext]:
+def create_agent(dataset_info: str) -> Agent[AgentContext, str]:
     """Create the data analysis agent with query and visualization tools."""
     model = os.getenv("MODEL", "mistral:magistral-small-latest")
 
-    agent: Agent[AgentContext] = Agent(
+    agent: Agent[AgentContext, str] = Agent(
         model=model,
         deps_type=AgentContext,
         system_prompt=get_system_prompt(dataset_info),
