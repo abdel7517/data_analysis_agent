@@ -4,7 +4,7 @@ import json
 from fastapi import APIRouter, Depends, HTTPException
 from dependency_injector.wiring import inject, Provide
 
-from backend.domain.models.chat import ChatRequest, ChatResponse
+from backend.domain.models.chat import ChatRequest, ChatResponse, CancelResponse
 from backend.domain.ports.event_broker_port import EventBrokerPort
 from backend.infrastructure.container import Container
 
@@ -38,4 +38,24 @@ async def send_message(
     return ChatResponse(
         status="queued",
         channel=f"outbox:{request.email}"
+    )
+
+
+@router.post("/chat/cancel/{email}", response_model=CancelResponse)
+@inject
+async def cancel_chat(
+    email: str,
+    broker: EventBrokerPort = Depends(Provide[Container.event_broker]),
+):
+    """
+    Demande l'annulation du traitement pour un utilisateur.
+
+    Publie un signal de cancellation via Redis Pub/Sub que
+    le CancellationManager reçoit instantanément.
+    """
+    await broker.publish_cancel(email)
+
+    return CancelResponse(
+        status="cancellation_requested",
+        email=email
     )

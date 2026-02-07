@@ -13,7 +13,6 @@ FunctionToolResultEvent est correctement émis (cf. pydantic-ai#1007).
 import asyncio
 import json
 import logging
-from enum import StrEnum
 from pathlib import Path
 
 import pandas as pd
@@ -33,27 +32,13 @@ from pydantic_ai.messages import (
 from agent.agent import create_agent
 from agent.context import AgentContext
 from src.application.services.messaging_service import MessagingService
+from src.application.services.cancellation_manager import CancellationManager
+from src.domain.enums import SSEEventType, ToolResultMarker
 from src.infrastructure.container import Container
 
 logger = logging.getLogger(__name__)
 
 DATA_DIR = Path("data")
-
-
-class SSEEventType(StrEnum):
-    THINKING = "thinking"
-    TEXT = "text"
-    TOOL_CALL_START = "tool_call_start"
-    TOOL_CALL_RESULT = "tool_call_result"
-    PLOTLY = "plotly"
-    DATA_TABLE = "data_table"
-    DONE = "done"
-    ERROR = "error"
-
-
-class ToolResultMarker(StrEnum):
-    PLOTLY_JSON = "PLOTLY_JSON:"
-    TABLE_JSON = "TABLE_JSON:"
 
 
 class _ParsedMessage(BaseModel):
@@ -68,6 +53,7 @@ class DataAnalysisAgent:
         self._agent = None
         self._datasets: dict[str, pd.DataFrame] = {}
         self._dataset_info: str = ""
+        self._cancellation: CancellationManager | None = None
 
     def _load_datasets(self) -> tuple[dict[str, pd.DataFrame], str]:
         """Charge les CSV du dossier data/ et génère dataset_info."""
@@ -95,11 +81,13 @@ class DataAnalysisAgent:
     async def serve(
         self,
         messaging: MessagingService = Provide[Container.messaging_service],
+        cancellation: CancellationManager = Provide[Container.cancellation_manager],
     ):
         """Écoute les messages entrants et stream les réponses."""
+        self._cancellation = cancellation
         self.initialize()
 
-        async with messaging:
+        async with messaging, cancellation:
             logger.info("DataAnalysisAgent en écoute...")
             async for msg in messaging.listen():
                 asyncio.create_task(self._handle_message(messaging, msg))
@@ -144,6 +132,10 @@ class DataAnalysisAgent:
 
         async with self._agent.iter(parsed.message, deps=context) as run:
             async for node in run:
+                # Vérifier si une annulation a été demandée (check instantané, pas d'I/O)
+                if await self._cancellation.handle_if_cancelled(parsed.email):
+                    return
+
                 logger.info(f"[NODE] Type: {type(node).__name__}")
 
                 # --- Model Request Node : génère du texte/thinking ---

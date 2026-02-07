@@ -1,25 +1,26 @@
 import { useState, useRef, useCallback } from 'react'
-import { Send } from 'lucide-react'
+import { Send, Square } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 
 interface ChatInputProps {
   onSend: (text: string) => void
-  disabled: boolean
+  onStop: () => void
+  isLoading: boolean
 }
 
-export function ChatInput({ onSend, disabled }: ChatInputProps) {
+export function ChatInput({ onSend, onStop, isLoading }: ChatInputProps) {
   const [value, setValue] = useState('')
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
   const handleSubmit = useCallback(() => {
-    if (!value.trim() || disabled) return
+    if (!value.trim() || isLoading) return
     onSend(value)
     setValue('')
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto'
     }
-  }, [value, disabled, onSend])
+  }, [value, isLoading, onSend])
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -44,18 +45,29 @@ export function ChatInput({ onSend, disabled }: ChatInputProps) {
           onChange={handleChange}
           onKeyDown={handleKeyDown}
           placeholder="Posez votre question sur les donnees..."
-          disabled={disabled}
+          disabled={isLoading}
           rows={1}
           className="min-h-[40px] max-h-[150px] resize-none flex-1"
         />
-        <Button
-          onClick={handleSubmit}
-          size="icon"
-          disabled={disabled || !value.trim()}
-          className="h-10 w-10 flex-shrink-0"
-        >
-          <Send className="h-4 w-4" />
-        </Button>
+        {isLoading ? (
+          <Button
+            onClick={onStop}
+            size="icon"
+            variant="destructive"
+            className="h-10 w-10 flex-shrink-0"
+          >
+            <Square className="h-4 w-4" />
+          </Button>
+        ) : (
+          <Button
+            onClick={handleSubmit}
+            size="icon"
+            disabled={!value.trim()}
+            className="h-10 w-10 flex-shrink-0"
+          >
+            <Send className="h-4 w-4" />
+          </Button>
+        )}
       </div>
     </div>
   )

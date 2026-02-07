@@ -121,3 +121,26 @@ class InMemoryMessageChannel(MessageChannel):
         """
         msg = Message(channel=channel, data=data, metadata={"injected": True})
         await self._queue.put(msg)
+
+    async def publish_signal(self, channel: str, signal: str) -> None:
+        """
+        Publie un signal simple (simule Pub/Sub en memoire).
+
+        Args:
+            channel: Nom du canal
+            signal: Signal a envoyer
+        """
+        if not self._connected:
+            raise ConnectionError("Canal non connecte. Appelez connect() d'abord.")
+
+        # Verifier si le canal correspond a un pattern abonne
+        for pattern in self._patterns:
+            if fnmatch.fnmatch(channel, pattern):
+                msg = Message(
+                    channel=channel,
+                    data={"signal": signal},
+                    metadata={"pattern": pattern}
+                )
+                await self._queue.put(msg)
+                logger.debug(f"Signal publie: {channel} = {signal}")
+                return

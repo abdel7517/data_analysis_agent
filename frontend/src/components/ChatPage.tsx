@@ -19,7 +19,7 @@ export function ChatPage() {
   const [email, setEmail] = useState('')
   const [isConnected, setIsConnected] = useState(false)
 
-  const { messages, streamingBlocks, isLoading, sendMessage, clearMessages, streamingMessageId } =
+  const { messages, streamingBlocks, isLoading, sendMessage, clearMessages, stopResponse, streamingMessageId } =
     useChat(email)
 
   const handleConnect = (e: React.FormEvent<HTMLFormElement>) => {
@@ -119,7 +119,7 @@ export function ChatPage() {
       </div>
 
       {/* Zone de saisie */}
-      <ChatInput onSend={sendMessage} disabled={isLoading} />
+      <ChatInput onSend={sendMessage} onStop={stopResponse} isLoading={isLoading} />
     </div>
   )
 }

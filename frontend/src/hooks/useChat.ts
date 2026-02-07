@@ -253,12 +253,31 @@ export function useChat(email: string) {
     disconnect();
   }, [disconnect]);
 
+  // Arrête la réponse en cours de streaming
+  // Envoie un signal de cancellation au backend et ferme la connexion SSE
+  const stopResponse = useCallback(async () => {
+    if (!email || !isLoading) return;
+
+    try {
+      await fetch(`/api/chat/cancel/${encodeURIComponent(email)}`, {
+        method: "POST",
+      });
+    } catch (err) {
+      console.error("Erreur arrêt réponse:", err);
+    }
+
+    // Finalise les blocs en cours et ferme la connexion
+    commitMessage();
+    disconnect();
+  }, [email, isLoading, disconnect]);
+
   return {
     messages,
     streamingBlocks,
     isLoading,
     sendMessage,
     clearMessages,
+    stopResponse,
     streamingMessageId: streamingMessageIdRef.current,
   };
 }

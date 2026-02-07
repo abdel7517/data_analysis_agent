@@ -12,3 +12,9 @@ class ChatResponse(BaseModel):
     """Schema pour la reponse de chat."""
     status: str
     channel: str
+
+
+class CancelResponse(BaseModel):
+    """Schema pour la reponse d'annulation."""
+    status: str
+    email: str

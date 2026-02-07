@@ -93,6 +93,23 @@ class MessageChannel(ABC):
         """
         pass
 
+    @abstractmethod
+    async def publish_signal(self, channel: str, signal: str) -> None:
+        """
+        Publie un signal simple via Pub/Sub (sans JSON).
+
+        Contrairement a publish() qui serialise en JSON,
+        cette methode envoie une string brute.
+
+        Args:
+            channel: Nom du canal (ex: "cancel:user@email.com")
+            signal: Signal a envoyer (ex: "cancel")
+
+        Raises:
+            ConnectionError: Si le canal n'est pas connecte
+        """
+        pass
+
     async def __aenter__(self):
         """Context manager: connexion automatique."""
         await self.connect()

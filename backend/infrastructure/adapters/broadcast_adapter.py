@@ -31,6 +31,18 @@ class BroadcastEventBroker(EventBrokerPort):
         async with self._broadcast.subscribe(channel=channel) as subscriber:
             yield _BroadcastSubscription(subscriber)
 
+    # --- Cancellation ---
+
+    async def publish_cancel(self, email: str) -> None:
+        """
+        Publie un signal de cancellation via Redis Pub/Sub.
+
+        Args:
+            email: Email de l'utilisateur
+        """
+        channel = f"cancel:{email}"
+        await self._broadcast.publish(channel=channel, message="cancel")
+
 
 class _BroadcastSubscription:
     """Wrapper autour du subscriber broadcaster pour exposer get() -> str."""

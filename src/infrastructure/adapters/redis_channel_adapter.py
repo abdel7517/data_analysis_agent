@@ -97,7 +97,7 @@ class RedisMessageChannel(MessageChannel):
         Ecoute les messages sur les canaux abonnes.
 
         Yields:
-            Message: Messages recus avec les donnees parsees du JSON
+            Message: Messages recus avec les donnees parsees du JSON ou signal brut
         """
         if self._pubsub is None or not self._subscribed:
             raise ConnectionError("Pas d'abonnement actif. Appelez subscribe() d'abord.")
@@ -105,20 +105,44 @@ class RedisMessageChannel(MessageChannel):
         async for raw_message in self._pubsub.listen():
             if raw_message["type"] == "pmessage":
                 try:
-                    data = json.loads(raw_message["data"])
                     channel = raw_message["channel"]
                     if isinstance(channel, bytes):
                         channel = channel.decode("utf-8")
+
+                    data_raw = raw_message["data"]
+                    if isinstance(data_raw, bytes):
+                        data_raw = data_raw.decode("utf-8")
+
+                    # Tente de parser en JSON, sinon wrap comme signal
+                    try:
+                        data = json.loads(data_raw)
+                    except json.JSONDecodeError:
+                        data = {"signal": data_raw}
+
+                    pattern = raw_message.get("pattern")
+                    if isinstance(pattern, bytes):
+                        pattern = pattern.decode("utf-8")
 
                     yield Message(
                         channel=channel,
                         data=data,
                         metadata={
-                            "pattern": raw_message.get("pattern"),
+                            "pattern": pattern,
                             "type": raw_message.get("type")
                         }
                     )
-                except json.JSONDecodeError as e:
-                    logger.warning(f"Message JSON invalide: {e}")
                 except Exception as e:
                     logger.error(f"Erreur lors du traitement du message: {e}")
+
+    async def publish_signal(self, channel: str, signal: str) -> None:
+        """
+        Publie un signal simple via Pub/Sub (sans JSON).
+
+        Args:
+            channel: Nom du canal
+            signal: Signal a envoyer
+        """
+        if self._redis is None:
+            raise ConnectionError("Canal non connecte. Appelez connect() d'abord.")
+        await self._redis.publish(channel, signal)
+        logger.debug(f"Signal publie: {channel} = {signal}")

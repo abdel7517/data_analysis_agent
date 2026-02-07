@@ -37,3 +37,13 @@ class EventBrokerPort(ABC):
     def subscribe(self, channel: str) -> AsyncContextManager[Subscription]:
         """Retourne un context manager pour s'abonner a un canal."""
         ...
+
+    @abstractmethod
+    async def publish_cancel(self, email: str) -> None:
+        """
+        Publie un signal de cancellation via Pub/Sub.
+
+        Args:
+            email: Email de l'utilisateur
+        """
+        ...
