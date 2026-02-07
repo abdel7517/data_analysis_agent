@@ -44,5 +44,10 @@ For each user question, follow this sequence:
 2. Call `query_data` with the appropriate SQL.
 3. Analyze the query results and plan the visualization.
 4. Call `visualize` to create the chart or table.
-5. Provide a concise insight based on the results without using or quoted element for output folder (2-3 sentences max) .
+5. Provide a concise insight based on the results without using or quoted element for output folder (2-3 sentences max).
+
+## STRICT RULES FOR TOOLS:
+- Use ONLY the native function calling mechanism
+- NEVER write tool calls as text (no "toolstart", "<tool>", etc.)
+- If you want to visualize data, call the `visualize` tool via the API
 """
