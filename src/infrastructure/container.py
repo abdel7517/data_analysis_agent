@@ -13,6 +13,9 @@ from src.infrastructure.adapters.redis_channel_adapter import RedisMessageChanne
 from src.infrastructure.adapters.memory_channel_adapter import InMemoryMessageChannel
 from src.application.services.messaging_service import MessagingService
 from src.application.services.cancellation_manager import CancellationManager
+from src.application.services.dataset_loader import DatasetLoader
+from src.application.services.event_parser import EventParser
+from src.application.services.stream_processor import StreamProcessor
 
 logger = logging.getLogger(__name__)
 
@@ -99,3 +102,20 @@ class Container(containers.DeclarativeContainer):
     Gestionnaire de cancellation (Singleton).
     Écoute les signaux cancel:* en background pour des checks instantanés.
     """
+
+    # =========================================================================
+    # AGENT SERVICES
+    # =========================================================================
+
+    dataset_loader = providers.Singleton(DatasetLoader)
+    """Service de chargement des datasets CSV."""
+
+    event_parser = providers.Singleton(EventParser)
+    """Service de parsing des events PydanticAI."""
+
+    stream_processor = providers.Singleton(
+        StreamProcessor,
+        messaging=messaging_service,
+        parser=event_parser,
+    )
+    """Service de traitement du stream PydanticAI."""

@@ -112,12 +112,18 @@ agent_orbital/
 │
 ├── src/                                 # Infrastructure agent worker
 │   ├── domain/
-│   │   └── ports/
-│   │       └── message_channel_port.py  # Interface MessageChannel
+│   │   ├── ports/
+│   │   │   └── message_channel_port.py  # Interface MessageChannel
+│   │   └── enums/
+│   │       └── __init__.py              # SSEEventType, ToolResultMarker
 │   ├── application/
-│   │   ├── data_analysis_agent.py       # Orchestrateur agent + streaming SSE
+│   │   ├── data_analysis_agent.py       # Orchestrateur léger (coordination)
 │   │   └── services/
-│   │       └── messaging_service.py     # Service messaging (pub/sub)
+│   │       ├── messaging_service.py     # Service messaging (pub/sub)
+│   │       ├── cancellation_manager.py  # Gestion annulation via Pub/Sub
+│   │       ├── dataset_loader.py        # Chargement datasets CSV
+│   │       ├── event_parser.py          # Parsing events PydanticAI
+│   │       └── stream_processor.py      # Traitement stream + publication SSE
 │   ├── infrastructure/
 │   │   ├── container.py                 # Container DI (channel selector)
 │   │   └── adapters/
@@ -180,6 +186,7 @@ agent_orbital/
 ### Principes architecturaux
 
 - **Ports & Adapters (Hexagonal)** : Les ports (`domain/ports/`) définissent les interfaces, les adapters (`infrastructure/adapters/`) les implémentent
+- **Service Layer** : Les services (`application/services/`) encapsulent la logique métier (streaming, parsing, cancellation)
 - **Dependency Injection** : Container DI gère le wiring, les services dépendent des abstractions
 - **Event-driven** : Redis Pub/Sub découple le backend du worker agent
 - **Type-safe** : TypeScript strict mode + discriminated unions (SSEEvent, Block)
@@ -313,6 +320,7 @@ python main.py serve --channel-type memory
 | Endpoint | Méthode | Description |
 |----------|---------|-------------|
 | `/api/chat` | POST | Envoyer un message à l'agent |
+| `/api/chat/cancel/{email}` | POST | Annuler le streaming en cours |
 | `/api/stream/{email}` | GET | Streaming SSE des réponses |
 | `/health` | GET | Health check |
 
@@ -331,6 +339,20 @@ curl -X POST http://localhost:8000/api/chat \
 ```json
 {
   "status": "queued",
+  "email": "user@example.com"
+}
+```
+
+### Exemple POST /api/chat/cancel/{email}
+
+```bash
+curl -X POST http://localhost:8000/api/chat/cancel/user@example.com
+```
+
+**Réponse** :
+```json
+{
+  "status": "cancelled",
   "email": "user@example.com"
 }
 ```
@@ -461,6 +483,7 @@ REDIS_URL=redis://localhost:6379
 |---------|-----------|---------|
 | `inbox:{email}` | Backend → Agent | Requêtes utilisateur |
 | `outbox:{email}` | Agent → Backend | Événements SSE (thinking, tool_call, plotly, etc.) |
+| `cancel:{email}` | Backend → Agent | Signal d'annulation du streaming |
 
 ### Événements SSE
 

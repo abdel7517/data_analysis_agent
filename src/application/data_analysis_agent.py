@@ -1,44 +1,27 @@
 """
-Agent d'analyse de données avec streaming PydanticAI → SSE.
+Agent d'analyse de données - Orchestrateur.
 
 Ce service :
 1. Écoute les messages entrants sur inbox:*
 2. Appelle l'agent PydanticAI via agent.iter() (API node-by-node)
-3. Publie chaque événement (thinking, text, tool_call, plotly, etc.) via MessagingService
-
-Note: Utilise agent.iter() au lieu de run_stream_events() pour garantir que
-FunctionToolResultEvent est correctement émis (cf. pydantic-ai#1007).
+3. Délègue le streaming aux services spécialisés
 """
 
 import asyncio
-import json
 import logging
-from pathlib import Path
 
-import pandas as pd
 from pydantic import BaseModel, ValidationError
 from dependency_injector.wiring import inject, Provide
-
-from pydantic_ai import Agent, FunctionToolCallEvent, FunctionToolResultEvent
-from pydantic_ai.messages import (
-    PartDeltaEvent,
-    PartStartEvent,
-    TextPartDelta,
-    TextPart,
-    ThinkingPartDelta,
-    ThinkingPart,
-)
 
 from agent.agent import create_agent
 from agent.context import AgentContext
 from src.application.services.messaging_service import MessagingService
 from src.application.services.cancellation_manager import CancellationManager
-from src.domain.enums import SSEEventType, ToolResultMarker
+from src.application.services.dataset_loader import DatasetLoader
+from src.application.services.stream_processor import StreamProcessor
 from src.infrastructure.container import Container
 
 logger = logging.getLogger(__name__)
-
-DATA_DIR = Path("data")
 
 
 class _ParsedMessage(BaseModel):
@@ -47,53 +30,44 @@ class _ParsedMessage(BaseModel):
 
 
 class DataAnalysisAgent:
-    """Wrapper qui stream les événements PydanticAI via MessagingService."""
+    """Orchestrateur qui coordonne les services pour le traitement des messages."""
 
     def __init__(self):
         self._agent = None
-        self._datasets: dict[str, pd.DataFrame] = {}
-        self._dataset_info: str = ""
+        self._dataset_loader: DatasetLoader | None = None
         self._cancellation: CancellationManager | None = None
+        self._stream_processor: StreamProcessor | None = None
 
-    def _load_datasets(self) -> tuple[dict[str, pd.DataFrame], str]:
-        """Charge les CSV du dossier data/ et génère dataset_info."""
-        datasets = {}
-        if DATA_DIR.exists():
-            for csv_file in sorted(DATA_DIR.glob("*.csv")):
-                datasets[csv_file.stem] = pd.read_csv(csv_file)
-
-        if not datasets:
-            return {}, "No datasets available."
-
-        parts = []
-        for name, df in datasets.items():
-            cols = ", ".join(f"{c} ({df[c].dtype})" for c in df.columns)
-            parts.append(f"- **{name}**: {df.shape[0]} rows, columns: {cols}")
-        return datasets, "\n".join(parts)
-
-    def initialize(self):
-        """Crée l'agent PydanticAI avec les datasets disponibles."""
-        self._datasets, self._dataset_info = self._load_datasets()
-        self._agent = create_agent(self._dataset_info)
-        logger.info(f"Agent initialisé avec {len(self._datasets)} dataset(s)")
+    @inject
+    def initialize(
+        self,
+        dataset_loader: DatasetLoader = Provide[Container.dataset_loader],
+    ):
+        """Charge les datasets et crée l'agent."""
+        self._dataset_loader = dataset_loader
+        self._dataset_loader.load()
+        self._agent = create_agent(self._dataset_loader.info)
+        logger.info(f"Agent initialisé avec {len(self._dataset_loader.datasets)} dataset(s)")
 
     @inject
     async def serve(
         self,
         messaging: MessagingService = Provide[Container.messaging_service],
         cancellation: CancellationManager = Provide[Container.cancellation_manager],
+        stream_processor: StreamProcessor = Provide[Container.stream_processor],
     ):
         """Écoute les messages entrants et stream les réponses."""
         self._cancellation = cancellation
+        self._stream_processor = stream_processor
         self.initialize()
 
         async with messaging, cancellation:
             logger.info("DataAnalysisAgent en écoute...")
             async for msg in messaging.listen():
-                asyncio.create_task(self._handle_message(messaging, msg))
+                asyncio.create_task(self._handle_message(msg))
 
-    async def _handle_message(self, messaging: MessagingService, msg):
-        """Parse le message et lance le streaming."""
+    async def _handle_message(self, msg):
+        """Parse et traite un message."""
         try:
             parsed = _ParsedMessage(**msg.data)
         except ValidationError as e:
@@ -103,143 +77,27 @@ class DataAnalysisAgent:
         logger.info(f"Message de {parsed.email}: {parsed.message[:50]}...")
 
         try:
-            await self._stream_events_to_user(messaging, parsed)
+            await self._process_request(parsed)
         except Exception as e:
             logger.error(f"Erreur pour {parsed.email}: {e}", exc_info=True)
-            await messaging.publish_event(
-                parsed.email, SSEEventType.ERROR, {"message": str(e)}, done=True
-            )
+            await self._stream_processor.publish_error(parsed.email, str(e))
 
-    async def _stream_events_to_user(
-        self, messaging: MessagingService, parsed: _ParsedMessage
-    ):
-        """Itère agent.iter() et publie chaque événement typé.
-
-        Stratégie de streaming :
-        - Thinking → streamé immédiatement comme THINKING
-        - Text → streamé comme THINKING + buffered pour réponse finale
-        - Tool call → reset du buffer (le texte avant était du code/réflexion)
-        - End → envoyer le buffer comme TEXT (réponse finale)
-        """
+    async def _process_request(self, parsed: _ParsedMessage):
+        """Exécute l'agent et stream les résultats."""
         context = AgentContext(
-            datasets=self._datasets.copy(),
-            dataset_info=self._dataset_info,
+            datasets=self._dataset_loader.datasets,
+            dataset_info=self._dataset_loader.info,
             email=parsed.email,
         )
-
-        # Buffer pour la réponse finale (reset à chaque tool call)
-        final_text_buffer = ""
+        buffer = ""
 
         async with self._agent.iter(parsed.message, deps=context) as run:
             async for node in run:
-                # Vérifier si une annulation a été demandée (check instantané, pas d'I/O)
                 if await self._cancellation.handle_if_cancelled(parsed.email):
                     return
 
-                logger.info(f"[NODE] Type: {type(node).__name__}")
-
-                # --- Model Request Node : génère du texte/thinking ---
-                if Agent.is_model_request_node(node):
-                    logger.info("[NODE] → ModelRequestNode")
-                    async with node.stream(run.ctx) as stream:
-                        async for event in stream:
-                            if isinstance(event, PartStartEvent):
-                                if isinstance(event.part, ThinkingPart) and event.part.content:
-                                    await messaging.publish_event(
-                                        parsed.email,
-                                        SSEEventType.THINKING,
-                                        {"content": event.part.content},
-                                    )
-                                elif isinstance(event.part, TextPart) and event.part.content:
-                                    # Streamer comme THINKING + buffer pour réponse finale
-                                    final_text_buffer += event.part.content
-                                    await messaging.publish_event(
-                                        parsed.email,
-                                        SSEEventType.THINKING,
-                                        {"content": event.part.content},
-                                    )
-
-                            elif isinstance(event, PartDeltaEvent):
-                                if isinstance(event.delta, ThinkingPartDelta):
-                                    await messaging.publish_event(
-                                        parsed.email,
-                                        SSEEventType.THINKING,
-                                        {"content": event.delta.content_delta},
-                                    )
-                                elif isinstance(event.delta, TextPartDelta):
-                                    # Streamer comme THINKING + buffer pour réponse finale
-                                    final_text_buffer += event.delta.content_delta
-                                    await messaging.publish_event(
-                                        parsed.email,
-                                        SSEEventType.THINKING,
-                                        {"content": event.delta.content_delta},
-                                    )
-
-                # --- Call Tools Node : exécute les tools et retourne les résultats ---
-                elif Agent.is_call_tools_node(node):
-                    logger.info("[NODE] → CallToolsNode")
-
-                    async with node.stream(run.ctx) as stream:
-                        async for event in stream:
-                            logger.info(f"[TOOL_EVENT] {type(event).__name__}")
-                            # Reset du buffer : le texte avant était du code/réflexion, pas la réponse finale
-                            final_text_buffer = ""
-                            if isinstance(event, FunctionToolCallEvent):
-                                await messaging.publish_event(
-                                    parsed.email,
-                                    SSEEventType.TOOL_CALL_START,
-                                    {
-                                        "name": event.part.tool_name,
-                                        "args": event.part.args,
-                                    },
-                                )
-
-                            elif isinstance(event, FunctionToolResultEvent):
-                                result_str = str(event.result.content)
-
-                                if ToolResultMarker.PLOTLY_JSON in result_str:
-                                    plotly_json = result_str.split(
-                                        ToolResultMarker.PLOTLY_JSON, 1
-                                    )[1]
-                                    await messaging.publish_event(
-                                        parsed.email,
-                                        SSEEventType.PLOTLY,
-                                        {"json": json.loads(plotly_json)},
-                                    )
-                                elif ToolResultMarker.TABLE_JSON in result_str:
-                                    table_json = result_str.split(
-                                        ToolResultMarker.TABLE_JSON, 1
-                                    )[1]
-                                    await messaging.publish_event(
-                                        parsed.email,
-                                        SSEEventType.DATA_TABLE,
-                                        {"json": json.loads(table_json)},
-                                    )
-                                else:
-                                    await messaging.publish_event(
-                                        parsed.email,
-                                        SSEEventType.TOOL_CALL_RESULT,
-                                        {
-                                            "tool_call_id": event.tool_call_id,
-                                            "result": result_str,
-                                        },
-                                    )
-
-                # --- End Node : envoyer la réponse finale et terminer ---
-                elif Agent.is_end_node(node):
-                    logger.info(f"[NODE] → EndNode | buffer_len={len(final_text_buffer)}")
-
-                    if final_text_buffer.strip():
-                        logger.info("[END] Envoi du TEXT final")
-                        await messaging.publish_event(
-                            parsed.email,
-                            SSEEventType.TEXT,
-                            {"content": final_text_buffer},
-                        )
-                    else:
-                        logger.info("[END] Buffer vide, pas d'envoi TEXT")
-
-                    await messaging.publish_event(
-                        parsed.email, SSEEventType.DONE, {}, done=True
-                    )
-                    logger.info("[END] DONE envoyé")
+                buffer, is_end = await self._stream_processor.process_node(
+                    node, run.ctx, parsed.email, buffer
+                )
+                if is_end:
+                    return
