@@ -31,7 +31,7 @@ const BlockRenderer = memo(function BlockRenderer({ block, isActive }: BlockRend
       )
 
     case BlockType.TEXT:
-      return <FinalAnswer content={block.content} />
+      return <FinalAnswer content={block.content} done={block.done} />
 
     case BlockType.TOOL_CALL:
       return (
