@@ -36,7 +36,7 @@ export const ThinkingBlock = memo(function ThinkingBlock({ content, done, isActi
   }, [isActive])
 
   return (
-    <Collapsible open={isOpen} onOpenChange={setIsOpen} className="w-full">
+    <Collapsible open={isOpen} onOpenChange={setIsOpen} className="w-full overflow-hidden">
       <CollapsibleTrigger className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors py-1 group">
         <ChevronRight
           className={cn(
@@ -54,12 +54,12 @@ export const ThinkingBlock = memo(function ThinkingBlock({ content, done, isActi
         "overflow-hidden transition-opacity duration-1000 data-[state=open]:animate-collapsible-down data-[state=closed]:animate-collapsible-up",
         isClosing ? "opacity-30" : "opacity-100"
       )}>
-        <div className="ml-7 mt-1 rounded-md border border-dashed border-muted-foreground/25 bg-muted/30 px-3 py-2 text-xs text-muted-foreground leading-relaxed prose prose-sm dark:prose-invert max-w-none">
+        <div className="ml-7 mt-1 rounded-md border border-dashed border-muted-foreground/25 bg-muted/30 px-3 py-2 text-xs text-muted-foreground leading-relaxed max-w-full overflow-x-auto break-words [word-break:break-word]">
           <ReactMarkdown
             remarkPlugins={[remarkGfm]}
             components={{
               pre: ({ children }) => (
-                <pre className="rounded-md border bg-muted p-3 overflow-x-auto text-foreground">
+                <pre className="rounded-md border bg-muted p-3 overflow-x-auto text-foreground max-w-full">
                   {children}
                 </pre>
               ),
