@@ -83,7 +83,7 @@ Frontend              Backend (FastAPI)           Redis           Agent Worker (
 | **Icons** | Lucide React |
 | **Markdown** | React Markdown + remark-gfm |
 | **Dependency Injection** | dependency-injector |
-| **Infra** | Docker Compose (Redis) |
+| **Infra** | Docker Compose (Redis, Agent, Backend, Frontend) |
 
 ## Structure du Projet
 
@@ -173,7 +173,9 @@ agent_orbital/
 │   ├── tailwind.config.js               # Tailwind + animations collapsible
 │   ├── components.json                  # Config shadcn/ui
 │   ├── postcss.config.js
-│   └── vite.config.js                   # Vite dev server + proxy
+│   ├── vite.config.js                   # Vite dev server + proxy
+│   ├── Dockerfile                       # Multi-stage build (Node → Nginx)
+│   └── nginx.conf                       # Proxy /api vers backend
 │
 ├── data/                                # Datasets CSV
 │   ├── CCGENERAL.csv                    # Cartes de crédit (903 KB, 8950 lignes)
@@ -182,7 +184,10 @@ agent_orbital/
 │   └── telcoClient.csv                  # Clients télécom (972 KB, 7043 lignes)
 │
 ├── output/                              # Visualisations générées (.png)
-├── docker-compose.yml                   # Redis service
+├── docker-compose.yml                   # Orchestration des 4 services
+├── Dockerfile.agent                     # Container agent worker
+├── Dockerfile.backend                   # Container FastAPI
+├── .dockerignore                        # Exclusions build Docker
 ├── main.py                              # CLI : python main.py serve
 ├── requirements.txt                     # Dépendances Python
 └── .env.example                         # Template configuration
@@ -197,6 +202,8 @@ agent_orbital/
 - **Type-safe** : TypeScript strict mode + discriminated unions (SSEEvent, Block)
 
 ## Quick Start
+
+> **Alternative Docker** : Pour un déploiement rapide avec tous les services conteneurisés, voir la section [Déploiement Docker](#déploiement-docker).
 
 ### 1. Lancer Redis
 
@@ -241,6 +248,47 @@ npm run dev
 ```
 
 Ouvrir http://localhost:3000
+
+## Déploiement Docker
+
+### Lancer tous les services
+
+```bash
+docker-compose up --build
+```
+
+### Services démarrés
+
+| Service | Container | Port | Description |
+|---------|-----------|------|-------------|
+| Redis | agent-redis | 6379 | Message broker Pub/Sub |
+| Agent | agent-worker | - | Worker PydanticAI |
+| Backend | agent-backend | 8000 | API FastAPI |
+| Frontend | agent-frontend | 80 | Interface React (nginx) |
+
+### Accès
+
+- **Frontend** : http://localhost
+- **Backend API** : http://localhost:8000
+
+### Variables d'environnement
+
+Créer un fichier `.env` à la racine :
+
+```bash
+MODEL=mistral:magistral-small-latest
+MISTRAL_API_KEY=votre_cle_api
+REDIS_URL=redis://redis:6379
+CHANNEL_TYPE=redis
+```
+
+### Volumes montés
+
+| Volume | Description |
+|--------|-------------|
+| `./data:/app/data` | Datasets CSV |
+| `./logs:/app/logs` | Logs agent |
+| `./output:/app/output` | Visualisations générées |
 
 ## Utilisation
 
