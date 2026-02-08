@@ -54,6 +54,7 @@ export const ToolCallBlock = memo(function ToolCallBlock({ name, args, result, i
       <CardHeader className="px-4 py-2.5 flex flex-row items-center gap-3 space-y-0">
         <Wrench className="h-4 w-4 text-muted-foreground flex-shrink-0" />
         <span className="text-sm font-semibold flex-1">{name}</span>
+        {/* TODO: Réactiver quand la synchronisation done sera corrigée
         {isActive ? (
           <Badge variant="secondary" className="gap-1.5">
             <Spinner className="h-3 w-3" />
@@ -65,6 +66,7 @@ export const ToolCallBlock = memo(function ToolCallBlock({ name, args, result, i
             Termine
           </Badge>
         )}
+        */}
       </CardHeader>
       <CardContent className="px-4 pb-3 pt-0 space-y-2">
         {/* Arguments (collapsible) */}
