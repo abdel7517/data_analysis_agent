@@ -1,0 +1,11 @@
+Make,Model,Year,Engine Size,Mileage,Fuel Type,Transmission,Price
+BMW,Model A,2019,3.5,10315,Electric,Manual,41780.5
+Ford,Model C,2020,4.5,50886,Petrol,Manual,40538.38
+Toyota,Model A,2020,3.4,27268,Diesel,Manual,39203.51
+Audi,Model C,2019,4.3,16508,Petrol,Manual,39167.86
+Ford,Model A,2016,4.5,3810,Diesel,Manual,38740.21
+Audi,Model B,2020,4.4,23482,Electric,Automatic,37032.61
+Honda,Model E,2019,4.4,79810,Petrol,Manual,36842.41
+Ford,Model B,2021,4.5,40761,Diesel,Manual,36811.01
+Toyota,Model E,2012,4.0,10564,Petrol,Automatic,36806.29
+Ford,Model E,2016,4.1,38057,Petrol,Automatic,36651.27

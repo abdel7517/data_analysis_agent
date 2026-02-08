@@ -1,0 +1,481 @@
+2026-02-08 08:24:07,297 - asyncio - DEBUG - Using selector: KqueueSelector
+2026-02-08 08:24:07,566 - src.application.services.dataset_loader - INFO - Chargé 4 dataset(s)
+2026-02-08 08:24:07,581 - src.application.data_analysis_agent - INFO - Agent initialisé avec 4 dataset(s)
+2026-02-08 08:24:07,581 - src.application.services.messaging_service - INFO - Démarrage du MessagingService sur inbox:*...
+2026-02-08 08:24:07,587 - src.infrastructure.adapters.redis_channel_adapter - INFO - Connecte a Redis: redis://localhost:6379
+2026-02-08 08:24:07,587 - src.infrastructure.adapters.redis_channel_adapter - INFO - Abonne au pattern: inbox:*
+2026-02-08 08:24:07,587 - src.application.services.messaging_service - INFO - MessagingService connecté et en écoute
+2026-02-08 08:24:07,587 - src.application.services.cancellation_manager - INFO - Démarrage CancellationManager sur cancel:*...
+2026-02-08 08:24:07,589 - src.infrastructure.adapters.redis_channel_adapter - INFO - Connecte a Redis: redis://localhost:6379
+2026-02-08 08:24:07,589 - src.infrastructure.adapters.redis_channel_adapter - INFO - Abonne au pattern: cancel:*
+2026-02-08 08:24:07,589 - src.application.services.cancellation_manager - INFO - CancellationManager démarré
+2026-02-08 08:24:07,589 - src.application.data_analysis_agent - INFO - DataAnalysisAgent en écoute...
+2026-02-08 08:25:06,907 - src.application.data_analysis_agent - INFO - [AGENT:chabane.abdelkarim@gmail.com] New request: montre moiun exemple de code python...
+2026-02-08 08:25:06,907 - src.application.services.visualization_retry_manager - DEBUG - [RETRY:chabane.abdelkarim@gmail.com] Request started
+2026-02-08 08:25:06,907 - src.application.data_analysis_agent - DEBUG - [AGENT:chabane.abdelkarim@gmail.com] Starting run #1, history_len=0, prompt_len=35
+2026-02-08 08:25:06,912 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] Processing node: UserPromptNode
+2026-02-08 08:25:06,913 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] Unknown node type: UserPromptNode
+2026-02-08 08:25:06,913 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] Processing node: ModelRequestNode
+2026-02-08 08:25:10,997 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ModelRequest stream finished, 257 events processed
+2026-02-08 08:25:10,997 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ModelRequest done, buffer_len=645
+2026-02-08 08:25:10,998 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] Processing node: CallToolsNode
+2026-02-08 08:25:10,998 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ToolCalls done, buffer reset
+2026-02-08 08:25:10,998 - src.application.data_analysis_agent - DEBUG - [AGENT:chabane.abdelkarim@gmail.com] Run #1 ended
+2026-02-08 08:25:31,944 - src.application.services.cancellation_manager - INFO - [CANCEL] Signal reçu pour chabane.abdelkarim@gmail.com
+2026-02-08 08:25:40,748 - src.application.data_analysis_agent - INFO - [AGENT:chabane.abdelkarim@gmail.com] New request: - "Quel produit génère le plus de revenus ?"...
+2026-02-08 08:25:40,749 - src.application.services.visualization_retry_manager - DEBUG - [RETRY:chabane.abdelkarim@gmail.com] Request started
+2026-02-08 08:25:40,749 - src.application.data_analysis_agent - DEBUG - [AGENT:chabane.abdelkarim@gmail.com] Starting run #1, history_len=0, prompt_len=44
+2026-02-08 08:25:40,751 - src.application.services.cancellation_manager - INFO - [CANCEL] Arrêt pour chabane.abdelkarim@gmail.com
+2026-02-08 08:25:40,752 - src.application.services.cancellation_manager - DEBUG - Cancellation cleared pour chabane.abdelkarim@gmail.com
+2026-02-08 08:25:40,753 - src.application.services.messaging_service - DEBUG - Stream terminé pour chabane.abdelkarim@gmail.com
+2026-02-08 08:25:40,753 - src.application.data_analysis_agent - INFO - [AGENT:chabane.abdelkarim@gmail.com] Cancelled during run #1
+2026-02-08 08:25:57,936 - src.application.data_analysis_agent - INFO - [AGENT:chabane.abdelkarim@gmail.com] New request: - "Quel produit génère le plus de revenus ?"...
+2026-02-08 08:25:57,938 - src.application.services.visualization_retry_manager - DEBUG - [RETRY:chabane.abdelkarim@gmail.com] Request started
+2026-02-08 08:25:57,938 - src.application.data_analysis_agent - DEBUG - [AGENT:chabane.abdelkarim@gmail.com] Starting run #1, history_len=0, prompt_len=44
+2026-02-08 08:25:57,940 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] Processing node: UserPromptNode
+2026-02-08 08:25:57,940 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] Unknown node type: UserPromptNode
+2026-02-08 08:25:57,941 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] Processing node: ModelRequestNode
+2026-02-08 08:26:00,764 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ModelRequest stream finished, 104 events processed
+2026-02-08 08:26:00,765 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ModelRequest done, buffer_len=0
+2026-02-08 08:26:00,765 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] Processing node: CallToolsNode
+2026-02-08 08:26:00,766 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ToolCall START: query_data
+2026-02-08 08:26:00,812 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ToolCall RESULT: type=tool_call_result
+2026-02-08 08:26:00,813 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ToolCalls done, buffer reset
+2026-02-08 08:26:00,814 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] Processing node: ModelRequestNode
+2026-02-08 08:26:04,475 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ModelRequest stream finished, 78 events processed
+2026-02-08 08:26:04,475 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ModelRequest done, buffer_len=0
+2026-02-08 08:26:04,475 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] Processing node: CallToolsNode
+2026-02-08 08:26:04,475 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ToolCall START: visualize
+2026-02-08 08:26:04,620 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ToolCall RESULT: type=plotly
+2026-02-08 08:26:04,620 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] Visual output detected!
+2026-02-08 08:26:04,620 - src.application.services.visualization_retry_manager - DEBUG - [RETRY:chabane.abdelkarim@gmail.com] Visual recorded
+2026-02-08 08:26:04,622 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ToolCalls done, buffer reset
+2026-02-08 08:26:04,623 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] Processing node: ModelRequestNode
+2026-02-08 08:26:05,745 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ModelRequest stream finished, 48 events processed
+2026-02-08 08:26:05,746 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ModelRequest done, buffer_len=188
+2026-02-08 08:26:05,746 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] Processing node: CallToolsNode
+2026-02-08 08:26:05,747 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ToolCalls done, buffer reset
+2026-02-08 08:26:05,747 - src.application.data_analysis_agent - DEBUG - [AGENT:chabane.abdelkarim@gmail.com] Run #1 ended
+2026-02-08 08:26:05,748 - src.application.services.visualization_retry_manager - DEBUG - [RETRY:chabane.abdelkarim@gmail.com] SUCCESS: visual produced
+2026-02-08 08:26:05,748 - src.application.services.visualization_retry_manager - DEBUG - [RETRY:chabane.abdelkarim@gmail.com] State reset
+2026-02-08 08:26:05,748 - src.application.services.visualization_retry_manager - DEBUG - [RETRY:chabane.abdelkarim@gmail.com] Publishing final: 'Le produit qui génère le plus de revenus est le "Monitor" avec un total de 185298.31. Cela indique q...'
+2026-02-08 08:26:05,750 - src.application.services.messaging_service - DEBUG - Stream terminé pour chabane.abdelkarim@gmail.com
+2026-02-08 08:26:05,750 - src.application.services.visualization_retry_manager - DEBUG - [RETRY:chabane.abdelkarim@gmail.com] Stream completed
+2026-02-08 08:26:05,750 - src.application.data_analysis_agent - INFO - [AGENT:chabane.abdelkarim@gmail.com] Request completed after 1 run(s)
+2026-02-08 08:26:37,533 - src.application.data_analysis_agent - INFO - [AGENT:chabane.abdelkarim@gmail.com] New request: - "Quel produit génère le plus de revenus ?"...
+2026-02-08 08:26:37,535 - src.application.services.visualization_retry_manager - DEBUG - [RETRY:chabane.abdelkarim@gmail.com] Request started
+2026-02-08 08:26:37,535 - src.application.data_analysis_agent - DEBUG - [AGENT:chabane.abdelkarim@gmail.com] Starting run #1, history_len=0, prompt_len=44
+2026-02-08 08:26:37,537 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] Processing node: UserPromptNode
+2026-02-08 08:26:37,537 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] Unknown node type: UserPromptNode
+2026-02-08 08:26:37,538 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] Processing node: ModelRequestNode
+2026-02-08 08:26:39,179 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ModelRequest stream finished, 68 events processed
+2026-02-08 08:26:39,179 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ModelRequest done, buffer_len=0
+2026-02-08 08:26:39,180 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] Processing node: CallToolsNode
+2026-02-08 08:26:39,180 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ToolCall START: query_data
+2026-02-08 08:26:39,225 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ToolCall RESULT: type=tool_call_result
+2026-02-08 08:26:39,226 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ToolCalls done, buffer reset
+2026-02-08 08:26:39,226 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] Processing node: ModelRequestNode
+2026-02-08 08:26:41,287 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ModelRequest stream finished, 91 events processed
+2026-02-08 08:26:41,288 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ModelRequest done, buffer_len=0
+2026-02-08 08:26:41,288 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] Processing node: CallToolsNode
+2026-02-08 08:26:41,289 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ToolCall START: visualize
+2026-02-08 08:26:41,336 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ToolCall RESULT: type=plotly
+2026-02-08 08:26:41,336 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] Visual output detected!
+2026-02-08 08:26:41,336 - src.application.services.visualization_retry_manager - DEBUG - [RETRY:chabane.abdelkarim@gmail.com] Visual recorded
+2026-02-08 08:26:41,338 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ToolCalls done, buffer reset
+2026-02-08 08:26:41,338 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] Processing node: ModelRequestNode
+2026-02-08 08:26:42,925 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ModelRequest stream finished, 102 events processed
+2026-02-08 08:26:42,925 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ModelRequest done, buffer_len=149
+2026-02-08 08:26:42,926 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] Processing node: CallToolsNode
+2026-02-08 08:26:42,926 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ToolCalls done, buffer reset
+2026-02-08 08:26:42,926 - src.application.data_analysis_agent - DEBUG - [AGENT:chabane.abdelkarim@gmail.com] Run #1 ended
+2026-02-08 08:26:42,926 - src.application.services.visualization_retry_manager - DEBUG - [RETRY:chabane.abdelkarim@gmail.com] SUCCESS: visual produced
+2026-02-08 08:26:42,926 - src.application.services.visualization_retry_manager - DEBUG - [RETRY:chabane.abdelkarim@gmail.com] State reset
+2026-02-08 08:26:42,926 - src.application.services.visualization_retry_manager - DEBUG - [RETRY:chabane.abdelkarim@gmail.com] Publishing final: 'Le produit qui génère le plus de revenus est le "Monitor" avec un revenu total de 185298.31. Vous po...'
+2026-02-08 08:26:42,928 - src.application.services.messaging_service - DEBUG - Stream terminé pour chabane.abdelkarim@gmail.com
+2026-02-08 08:26:42,928 - src.application.services.visualization_retry_manager - DEBUG - [RETRY:chabane.abdelkarim@gmail.com] Stream completed
+2026-02-08 08:26:42,928 - src.application.data_analysis_agent - INFO - [AGENT:chabane.abdelkarim@gmail.com] Request completed after 1 run(s)
+2026-02-08 08:28:58,656 - src.application.data_analysis_agent - INFO - [AGENT:chabane.abdelkarim@gmail.com] New request: - "Quelle est la répartition du chiffre d'affaires...
+2026-02-08 08:28:58,658 - src.application.services.visualization_retry_manager - DEBUG - [RETRY:chabane.abdelkarim@gmail.com] Request started
+2026-02-08 08:28:58,658 - src.application.data_analysis_agent - DEBUG - [AGENT:chabane.abdelkarim@gmail.com] Starting run #1, history_len=0, prompt_len=65
+2026-02-08 08:28:58,660 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] Processing node: UserPromptNode
+2026-02-08 08:28:58,660 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] Unknown node type: UserPromptNode
+2026-02-08 08:28:58,661 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] Processing node: ModelRequestNode
+2026-02-08 08:29:02,401 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ModelRequest stream finished, 124 events processed
+2026-02-08 08:29:02,401 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ModelRequest done, buffer_len=0
+2026-02-08 08:29:02,402 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] Processing node: CallToolsNode
+2026-02-08 08:29:02,402 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ToolCall START: query_data
+2026-02-08 08:29:02,435 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ToolCall RESULT: type=tool_call_result
+2026-02-08 08:29:02,436 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ToolCalls done, buffer reset
+2026-02-08 08:29:02,437 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] Processing node: ModelRequestNode
+2026-02-08 08:29:04,114 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ModelRequest stream finished, 67 events processed
+2026-02-08 08:29:04,115 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ModelRequest done, buffer_len=0
+2026-02-08 08:29:04,115 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] Processing node: CallToolsNode
+2026-02-08 08:29:04,115 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ToolCall START: visualize
+2026-02-08 08:29:04,117 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ToolCall RESULT: type=tool_call_result
+2026-02-08 08:29:04,118 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ToolCalls done, buffer reset
+2026-02-08 08:29:04,119 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] Processing node: ModelRequestNode
+2026-02-08 08:29:05,539 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ModelRequest stream finished, 52 events processed
+2026-02-08 08:29:05,539 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ModelRequest done, buffer_len=0
+2026-02-08 08:29:05,540 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] Processing node: CallToolsNode
+2026-02-08 08:29:05,540 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ToolCall START: visualize
+2026-02-08 08:29:05,543 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ToolCall RESULT: type=tool_call_result
+2026-02-08 08:29:05,545 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ToolCalls done, buffer reset
+2026-02-08 08:29:05,547 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] Processing node: ModelRequestNode
+2026-02-08 08:29:08,557 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ModelRequest stream finished, 134 events processed
+2026-02-08 08:29:08,559 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ModelRequest done, buffer_len=0
+2026-02-08 08:29:08,560 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] Processing node: CallToolsNode
+2026-02-08 08:29:08,561 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ToolCall START: visualize
+2026-02-08 08:29:08,606 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ToolCall RESULT: type=plotly
+2026-02-08 08:29:08,606 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] Visual output detected!
+2026-02-08 08:29:08,606 - src.application.services.visualization_retry_manager - DEBUG - [RETRY:chabane.abdelkarim@gmail.com] Visual recorded
+2026-02-08 08:29:08,607 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ToolCalls done, buffer reset
+2026-02-08 08:29:08,608 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] Processing node: ModelRequestNode
+2026-02-08 08:29:09,936 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ModelRequest stream finished, 56 events processed
+2026-02-08 08:29:09,937 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ModelRequest done, buffer_len=218
+2026-02-08 08:29:09,937 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] Processing node: CallToolsNode
+2026-02-08 08:29:09,937 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ToolCalls done, buffer reset
+2026-02-08 08:29:09,937 - src.application.data_analysis_agent - DEBUG - [AGENT:chabane.abdelkarim@gmail.com] Run #1 ended
+2026-02-08 08:29:09,937 - src.application.services.visualization_retry_manager - DEBUG - [RETRY:chabane.abdelkarim@gmail.com] SUCCESS: visual produced
+2026-02-08 08:29:09,937 - src.application.services.visualization_retry_manager - DEBUG - [RETRY:chabane.abdelkarim@gmail.com] State reset
+2026-02-08 08:29:09,937 - src.application.services.visualization_retry_manager - DEBUG - [RETRY:chabane.abdelkarim@gmail.com] Publishing final: 'Le graphique montre que le produit "Monitor" génère le plus de chiffre d\'affaires, suivi de près par...'
+2026-02-08 08:29:09,939 - src.application.services.messaging_service - DEBUG - Stream terminé pour chabane.abdelkarim@gmail.com
+2026-02-08 08:29:09,939 - src.application.services.visualization_retry_manager - DEBUG - [RETRY:chabane.abdelkarim@gmail.com] Stream completed
+2026-02-08 08:29:09,939 - src.application.data_analysis_agent - INFO - [AGENT:chabane.abdelkarim@gmail.com] Request completed after 1 run(s)
+2026-02-08 08:29:41,090 - src.application.services.visualization_retry_manager - WARNING - [RETRY:chabane.abdelkarim@gmail.com] Judge failed: Server disconnected without sending a response., defaulting to True
+2026-02-08 08:29:41,090 - src.application.services.visualization_retry_manager - INFO - [RETRY:chabane.abdelkarim@gmail.com] Retry 1/2
+2026-02-08 08:29:41,091 - src.application.data_analysis_agent - DEBUG - [AGENT:chabane.abdelkarim@gmail.com] Preparing retry with prompt: Crée une visualisation (graphique ou tableau) pour...
+2026-02-08 08:29:41,092 - src.application.data_analysis_agent - DEBUG - [AGENT:chabane.abdelkarim@gmail.com] Starting run #2, history_len=2, prompt_len=83
+2026-02-08 08:29:41,093 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] Processing node: UserPromptNode
+2026-02-08 08:29:41,093 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] Unknown node type: UserPromptNode
+2026-02-08 08:29:41,093 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] Processing node: ModelRequestNode
+2026-02-08 08:29:44,261 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ModelRequest stream finished, 227 events processed
+2026-02-08 08:29:44,261 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ModelRequest done, buffer_len=0
+2026-02-08 08:29:44,261 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] Processing node: CallToolsNode
+2026-02-08 08:29:44,261 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ToolCall START: query_data
+2026-02-08 08:29:44,290 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ToolCall RESULT: type=tool_call_result
+2026-02-08 08:29:44,291 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ToolCalls done, buffer reset
+2026-02-08 08:29:44,291 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] Processing node: ModelRequestNode
+2026-02-08 08:29:47,356 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ModelRequest stream finished, 173 events processed
+2026-02-08 08:29:47,356 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ModelRequest done, buffer_len=0
+2026-02-08 08:29:47,357 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] Processing node: CallToolsNode
+2026-02-08 08:29:47,357 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ToolCall START: visualize
+2026-02-08 08:29:47,414 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ToolCall RESULT: type=plotly
+2026-02-08 08:29:47,414 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] Visual output detected!
+2026-02-08 08:29:47,415 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ToolCalls done, buffer reset
+2026-02-08 08:29:47,415 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] Processing node: ModelRequestNode
+2026-02-08 08:29:47,580 - src.application.data_analysis_agent - ERROR - [AGENT:chabane.abdelkarim@gmail.com] Error: API error occurred: Status 429. Body: {"object":"error","message":"Rate limit exceeded","type":"rate_limited","param":null,"code":"1300"}
+Traceback (most recent call last):
+  File "/Users/abdelkarimchabane/Desktop/agent_orbital/src/application/data_analysis_agent.py", line 87, in _handle_message
+    await self._process_request(parsed)
+  File "/Users/abdelkarimchabane/Desktop/agent_orbital/src/application/data_analysis_agent.py", line 132, in _process_request
+    buffer, _ = await self._stream_processor.process_node(
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        node, run.ctx, email, buffer
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/abdelkarimchabane/Desktop/agent_orbital/src/application/services/stream_processor.py", line 53, in process_node
+    buffer = await self._handle_model_request(node, ctx, email, buffer)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/abdelkarimchabane/Desktop/agent_orbital/src/application/services/stream_processor.py", line 74, in _handle_model_request
+    async with node.stream(ctx) as stream:
+               ~~~~~~~~~~~^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/contextlib.py", line 214, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/abdelkarimchabane/Desktop/agent_orbital/venv/lib/python3.13/site-packages/pydantic_ai/_agent_graph.py", line 467, in stream
+    async with ctx.deps.model.request_stream(
+               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        message_history, model_settings, model_request_parameters, run_context
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ) as streamed_response:
+    ^
+  File "/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/contextlib.py", line 214, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/abdelkarimchabane/Desktop/agent_orbital/venv/lib/python3.13/site-packages/pydantic_ai/models/mistral.py", line 213, in request_stream
+    response = await self._stream_completions_create(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        messages, cast(MistralModelSettings, model_settings or {}), model_request_parameters
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/abdelkarimchabane/Desktop/agent_orbital/venv/lib/python3.13/site-packages/pydantic_ai/models/mistral.py", line 266, in _stream_completions_create
+    response = await self.client.chat.stream_async(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<13 lines>...
+    )
+    ^
+  File "/Users/abdelkarimchabane/Desktop/agent_orbital/venv/lib/python3.13/site-packages/mistralai/chat.py", line 761, in stream_async
+    raise models.SDKError("API error occurred", http_res, http_res_text)
+mistralai.models.sdkerror.SDKError: API error occurred: Status 429. Body: {"object":"error","message":"Rate limit exceeded","type":"rate_limited","param":null,"code":"1300"}
+2026-02-08 08:29:47,587 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] Publishing error: API error occurred: Status 429. Body: {"object":"error","message":"Rate limit exceeded","type":"rate_limited","param":null,"code":"1300"}
+2026-02-08 08:29:47,589 - src.application.services.messaging_service - DEBUG - Stream terminé pour chabane.abdelkarim@gmail.com
+2026-02-08 08:30:11,310 - src.application.data_analysis_agent - INFO - [AGENT:chabane.abdelkarim@gmail.com] New request: - "Quelle est la répartition du chiffre d'affaires...
+2026-02-08 08:30:11,311 - src.application.services.visualization_retry_manager - DEBUG - [RETRY:chabane.abdelkarim@gmail.com] Request started
+2026-02-08 08:30:11,311 - src.application.data_analysis_agent - DEBUG - [AGENT:chabane.abdelkarim@gmail.com] Starting run #1, history_len=0, prompt_len=65
+2026-02-08 08:30:11,315 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] Processing node: UserPromptNode
+2026-02-08 08:30:11,315 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] Unknown node type: UserPromptNode
+2026-02-08 08:30:11,315 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] Processing node: ModelRequestNode
+2026-02-08 08:30:13,632 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ModelRequest stream finished, 121 events processed
+2026-02-08 08:30:13,632 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ModelRequest done, buffer_len=0
+2026-02-08 08:30:13,633 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] Processing node: CallToolsNode
+2026-02-08 08:30:13,633 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ToolCall START: query_data
+2026-02-08 08:30:13,675 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ToolCall RESULT: type=tool_call_result
+2026-02-08 08:30:13,676 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ToolCalls done, buffer reset
+2026-02-08 08:30:13,677 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] Processing node: ModelRequestNode
+2026-02-08 08:30:17,295 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ModelRequest stream finished, 331 events processed
+2026-02-08 08:30:17,295 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ModelRequest done, buffer_len=527
+2026-02-08 08:30:17,296 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] Processing node: CallToolsNode
+2026-02-08 08:30:17,296 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ToolCalls done, buffer reset
+2026-02-08 08:30:17,296 - src.application.data_analysis_agent - DEBUG - [AGENT:chabane.abdelkarim@gmail.com] Run #1 ended
+2026-02-08 08:30:18,278 - src.application.services.visualization_retry_manager - DEBUG - [RETRY:chabane.abdelkarim@gmail.com] Judge: needs_viz=True
+2026-02-08 08:30:18,278 - src.application.services.visualization_retry_manager - INFO - [RETRY:chabane.abdelkarim@gmail.com] Retry 1/2
+2026-02-08 08:30:18,279 - src.application.data_analysis_agent - DEBUG - [AGENT:chabane.abdelkarim@gmail.com] Preparing retry with prompt: Crée une visualisation (graphique ou tableau) pour...
+2026-02-08 08:30:18,280 - src.application.data_analysis_agent - DEBUG - [AGENT:chabane.abdelkarim@gmail.com] Starting run #2, history_len=4, prompt_len=83
+2026-02-08 08:30:18,281 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] Processing node: UserPromptNode
+2026-02-08 08:30:18,281 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] Unknown node type: UserPromptNode
+2026-02-08 08:30:18,282 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] Processing node: ModelRequestNode
+2026-02-08 08:30:18,445 - src.application.data_analysis_agent - ERROR - [AGENT:chabane.abdelkarim@gmail.com] Error: API error occurred: Status 429. Body: {"object":"error","message":"Rate limit exceeded","type":"rate_limited","param":null,"code":"1300"}
+Traceback (most recent call last):
+  File "/Users/abdelkarimchabane/Desktop/agent_orbital/src/application/data_analysis_agent.py", line 87, in _handle_message
+    await self._process_request(parsed)
+  File "/Users/abdelkarimchabane/Desktop/agent_orbital/src/application/data_analysis_agent.py", line 132, in _process_request
+    buffer, _ = await self._stream_processor.process_node(
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        node, run.ctx, email, buffer
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/abdelkarimchabane/Desktop/agent_orbital/src/application/services/stream_processor.py", line 53, in process_node
+    buffer = await self._handle_model_request(node, ctx, email, buffer)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/abdelkarimchabane/Desktop/agent_orbital/src/application/services/stream_processor.py", line 74, in _handle_model_request
+    async with node.stream(ctx) as stream:
+               ~~~~~~~~~~~^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/contextlib.py", line 214, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/abdelkarimchabane/Desktop/agent_orbital/venv/lib/python3.13/site-packages/pydantic_ai/_agent_graph.py", line 467, in stream
+    async with ctx.deps.model.request_stream(
+               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        message_history, model_settings, model_request_parameters, run_context
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ) as streamed_response:
+    ^
+  File "/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/contextlib.py", line 214, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/abdelkarimchabane/Desktop/agent_orbital/venv/lib/python3.13/site-packages/pydantic_ai/models/mistral.py", line 213, in request_stream
+    response = await self._stream_completions_create(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        messages, cast(MistralModelSettings, model_settings or {}), model_request_parameters
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/abdelkarimchabane/Desktop/agent_orbital/venv/lib/python3.13/site-packages/pydantic_ai/models/mistral.py", line 266, in _stream_completions_create
+    response = await self.client.chat.stream_async(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<13 lines>...
+    )
+    ^
+  File "/Users/abdelkarimchabane/Desktop/agent_orbital/venv/lib/python3.13/site-packages/mistralai/chat.py", line 761, in stream_async
+    raise models.SDKError("API error occurred", http_res, http_res_text)
+mistralai.models.sdkerror.SDKError: API error occurred: Status 429. Body: {"object":"error","message":"Rate limit exceeded","type":"rate_limited","param":null,"code":"1300"}
+2026-02-08 08:30:18,449 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] Publishing error: API error occurred: Status 429. Body: {"object":"error","message":"Rate limit exceeded","type":"rate_limited","param":null,"code":"1300"}
+2026-02-08 08:30:18,451 - src.application.services.messaging_service - DEBUG - Stream terminé pour chabane.abdelkarim@gmail.com
+2026-02-08 08:31:43,408 - src.application.data_analysis_agent - INFO - [AGENT:chabane.abdelkarim@gmail.com] New request: - "Quelle est la répartition du chiffre d'affaires...
+2026-02-08 08:31:43,409 - src.application.services.visualization_retry_manager - DEBUG - [RETRY:chabane.abdelkarim@gmail.com] Request started
+2026-02-08 08:31:43,409 - src.application.data_analysis_agent - DEBUG - [AGENT:chabane.abdelkarim@gmail.com] Starting run #1, history_len=0, prompt_len=65
+2026-02-08 08:31:43,411 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] Processing node: UserPromptNode
+2026-02-08 08:31:43,411 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] Unknown node type: UserPromptNode
+2026-02-08 08:31:43,412 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] Processing node: ModelRequestNode
+2026-02-08 08:31:46,383 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ModelRequest stream finished, 145 events processed
+2026-02-08 08:31:46,384 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ModelRequest done, buffer_len=0
+2026-02-08 08:31:46,385 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] Processing node: CallToolsNode
+2026-02-08 08:31:46,385 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ToolCall START: query_data
+2026-02-08 08:31:46,428 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ToolCall RESULT: type=tool_call_result
+2026-02-08 08:31:46,430 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ToolCalls done, buffer reset
+2026-02-08 08:31:46,430 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] Processing node: ModelRequestNode
+2026-02-08 08:31:50,273 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ModelRequest stream finished, 307 events processed
+2026-02-08 08:31:50,273 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ModelRequest done, buffer_len=483
+2026-02-08 08:31:50,274 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] Processing node: CallToolsNode
+2026-02-08 08:31:50,274 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ToolCalls done, buffer reset
+2026-02-08 08:31:50,274 - src.application.data_analysis_agent - DEBUG - [AGENT:chabane.abdelkarim@gmail.com] Run #1 ended
+2026-02-08 08:31:50,940 - src.application.services.visualization_retry_manager - DEBUG - [RETRY:chabane.abdelkarim@gmail.com] Judge: needs_viz=True
+2026-02-08 08:31:50,940 - src.application.services.visualization_retry_manager - INFO - [RETRY:chabane.abdelkarim@gmail.com] Retry 1/2
+2026-02-08 08:31:50,942 - src.application.data_analysis_agent - DEBUG - [AGENT:chabane.abdelkarim@gmail.com] Preparing retry with prompt: Crée une visualisation (graphique ou tableau) pour...
+2026-02-08 08:31:50,942 - src.application.data_analysis_agent - DEBUG - [AGENT:chabane.abdelkarim@gmail.com] Starting run #2, history_len=4, prompt_len=83
+2026-02-08 08:31:50,945 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] Processing node: UserPromptNode
+2026-02-08 08:31:50,945 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] Unknown node type: UserPromptNode
+2026-02-08 08:31:50,945 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] Processing node: ModelRequestNode
+2026-02-08 08:31:53,461 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ModelRequest stream finished, 157 events processed
+2026-02-08 08:31:53,461 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ModelRequest done, buffer_len=483
+2026-02-08 08:31:53,461 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] Processing node: CallToolsNode
+2026-02-08 08:31:53,462 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ToolCalls done, buffer reset
+2026-02-08 08:31:53,462 - src.application.data_analysis_agent - DEBUG - [AGENT:chabane.abdelkarim@gmail.com] Run #2 ended
+2026-02-08 08:31:55,012 - src.application.services.visualization_retry_manager - DEBUG - [RETRY:chabane.abdelkarim@gmail.com] Judge: needs_viz=True
+2026-02-08 08:31:55,012 - src.application.services.visualization_retry_manager - INFO - [RETRY:chabane.abdelkarim@gmail.com] Retry 2/2
+2026-02-08 08:31:55,013 - src.application.data_analysis_agent - DEBUG - [AGENT:chabane.abdelkarim@gmail.com] Preparing retry with prompt: Crée une visualisation (graphique ou tableau) pour...
+2026-02-08 08:31:55,014 - src.application.data_analysis_agent - DEBUG - [AGENT:chabane.abdelkarim@gmail.com] Starting run #3, history_len=6, prompt_len=83
+2026-02-08 08:31:55,016 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] Processing node: UserPromptNode
+2026-02-08 08:31:55,016 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] Unknown node type: UserPromptNode
+2026-02-08 08:31:55,016 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] Processing node: ModelRequestNode
+2026-02-08 08:31:58,878 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ModelRequest stream finished, 341 events processed
+2026-02-08 08:31:58,878 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ModelRequest done, buffer_len=483
+2026-02-08 08:31:58,878 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] Processing node: CallToolsNode
+2026-02-08 08:31:58,879 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ToolCalls done, buffer reset
+2026-02-08 08:31:58,879 - src.application.data_analysis_agent - DEBUG - [AGENT:chabane.abdelkarim@gmail.com] Run #3 ended
+2026-02-08 08:31:58,879 - src.application.services.visualization_retry_manager - WARNING - [RETRY:chabane.abdelkarim@gmail.com] FAILED: max retries reached
+2026-02-08 08:31:58,879 - src.application.services.visualization_retry_manager - DEBUG - [RETRY:chabane.abdelkarim@gmail.com] State reset
+2026-02-08 08:31:58,879 - src.application.services.visualization_retry_manager - DEBUG - [RETRY:chabane.abdelkarim@gmail.com] Publishing error: La visualisation n'a pas pu être générée. Pourriez-vous reformuler votre question ?
+2026-02-08 08:31:58,879 - src.application.services.messaging_service - DEBUG - Stream terminé pour chabane.abdelkarim@gmail.com
+2026-02-08 08:31:58,879 - src.application.services.visualization_retry_manager - DEBUG - [RETRY:chabane.abdelkarim@gmail.com] Stream completed
+2026-02-08 08:31:58,879 - src.application.data_analysis_agent - INFO - [AGENT:chabane.abdelkarim@gmail.com] Request completed after 3 run(s)
+2026-02-08 08:32:35,675 - src.application.data_analysis_agent - INFO - [AGENT:chabane.abdelkarim@gmail.com] New request: u chiffre d'affaires par produit ?"...
+2026-02-08 08:32:35,675 - src.application.services.visualization_retry_manager - DEBUG - [RETRY:chabane.abdelkarim@gmail.com] Request started
+2026-02-08 08:32:35,675 - src.application.data_analysis_agent - DEBUG - [AGENT:chabane.abdelkarim@gmail.com] Starting run #1, history_len=0, prompt_len=35
+2026-02-08 08:32:35,678 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] Processing node: UserPromptNode
+2026-02-08 08:32:35,678 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] Unknown node type: UserPromptNode
+2026-02-08 08:32:35,678 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] Processing node: ModelRequestNode
+2026-02-08 08:32:38,009 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ModelRequest stream finished, 120 events processed
+2026-02-08 08:32:38,010 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ModelRequest done, buffer_len=0
+2026-02-08 08:32:38,011 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] Processing node: CallToolsNode
+2026-02-08 08:32:38,011 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ToolCall START: query_data
+2026-02-08 08:32:38,055 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ToolCall RESULT: type=tool_call_result
+2026-02-08 08:32:38,057 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ToolCalls done, buffer reset
+2026-02-08 08:32:38,057 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] Processing node: ModelRequestNode
+2026-02-08 08:32:41,969 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ModelRequest stream finished, 181 events processed
+2026-02-08 08:32:41,970 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ModelRequest done, buffer_len=0
+2026-02-08 08:32:41,970 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] Processing node: CallToolsNode
+2026-02-08 08:32:41,970 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ToolCall START: visualize
+2026-02-08 08:32:42,019 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ToolCall RESULT: type=plotly
+2026-02-08 08:32:42,020 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] Visual output detected!
+2026-02-08 08:32:42,020 - src.application.services.visualization_retry_manager - DEBUG - [RETRY:chabane.abdelkarim@gmail.com] Visual recorded
+2026-02-08 08:32:42,021 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ToolCalls done, buffer reset
+2026-02-08 08:32:42,022 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] Processing node: ModelRequestNode
+2026-02-08 08:32:45,187 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ModelRequest stream finished, 249 events processed
+2026-02-08 08:32:45,188 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ModelRequest done, buffer_len=335
+2026-02-08 08:32:45,188 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] Processing node: CallToolsNode
+2026-02-08 08:32:45,189 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ToolCalls done, buffer reset
+2026-02-08 08:32:45,189 - src.application.data_analysis_agent - DEBUG - [AGENT:chabane.abdelkarim@gmail.com] Run #1 ended
+2026-02-08 08:32:45,189 - src.application.services.visualization_retry_manager - DEBUG - [RETRY:chabane.abdelkarim@gmail.com] SUCCESS: visual produced
+2026-02-08 08:32:45,189 - src.application.services.visualization_retry_manager - DEBUG - [RETRY:chabane.abdelkarim@gmail.com] State reset
+2026-02-08 08:32:45,189 - src.application.services.visualization_retry_manager - DEBUG - [RETRY:chabane.abdelkarim@gmail.com] Publishing final: "Voici le chiffre d'affaires par produit. Le produit avec le chiffre d'affaires le plus élevé est le ..."
+2026-02-08 08:32:45,190 - src.application.services.messaging_service - DEBUG - Stream terminé pour chabane.abdelkarim@gmail.com
+2026-02-08 08:32:45,190 - src.application.services.visualization_retry_manager - DEBUG - [RETRY:chabane.abdelkarim@gmail.com] Stream completed
+2026-02-08 08:32:45,191 - src.application.data_analysis_agent - INFO - [AGENT:chabane.abdelkarim@gmail.com] Request completed after 1 run(s)
+2026-02-08 08:38:00,116 - src.application.data_analysis_agent - INFO - [AGENT:chabane.abdelkarim@gmail.com] New request: - "Quelle est la distribution des types de carbura...
+2026-02-08 08:38:00,117 - src.application.services.visualization_retry_manager - DEBUG - [RETRY:chabane.abdelkarim@gmail.com] Request started
+2026-02-08 08:38:00,117 - src.application.data_analysis_agent - DEBUG - [AGENT:chabane.abdelkarim@gmail.com] Starting run #1, history_len=0, prompt_len=55
+2026-02-08 08:38:00,119 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] Processing node: UserPromptNode
+2026-02-08 08:38:00,119 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] Unknown node type: UserPromptNode
+2026-02-08 08:38:00,119 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] Processing node: ModelRequestNode
+2026-02-08 08:38:02,889 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ModelRequest stream finished, 160 events processed
+2026-02-08 08:38:02,890 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ModelRequest done, buffer_len=0
+2026-02-08 08:38:02,890 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] Processing node: CallToolsNode
+2026-02-08 08:38:02,891 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ToolCall START: query_data
+2026-02-08 08:38:02,932 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ToolCall RESULT: type=tool_call_result
+2026-02-08 08:38:02,933 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ToolCalls done, buffer reset
+2026-02-08 08:38:02,933 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] Processing node: ModelRequestNode
+2026-02-08 08:38:04,648 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ModelRequest stream finished, 64 events processed
+2026-02-08 08:38:04,648 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ModelRequest done, buffer_len=0
+2026-02-08 08:38:04,649 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] Processing node: CallToolsNode
+2026-02-08 08:38:04,649 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ToolCall START: visualize
+2026-02-08 08:38:04,707 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ToolCall RESULT: type=plotly
+2026-02-08 08:38:04,707 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] Visual output detected!
+2026-02-08 08:38:04,707 - src.application.services.visualization_retry_manager - DEBUG - [RETRY:chabane.abdelkarim@gmail.com] Visual recorded
+2026-02-08 08:38:04,709 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ToolCalls done, buffer reset
+2026-02-08 08:38:04,710 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] Processing node: ModelRequestNode
+2026-02-08 08:38:07,510 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ModelRequest stream finished, 180 events processed
+2026-02-08 08:38:07,511 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ModelRequest done, buffer_len=253
+2026-02-08 08:38:07,511 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] Processing node: CallToolsNode
+2026-02-08 08:38:07,511 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ToolCalls done, buffer reset
+2026-02-08 08:38:07,511 - src.application.data_analysis_agent - DEBUG - [AGENT:chabane.abdelkarim@gmail.com] Run #1 ended
+2026-02-08 08:38:07,512 - src.application.services.visualization_retry_manager - DEBUG - [RETRY:chabane.abdelkarim@gmail.com] SUCCESS: visual produced
+2026-02-08 08:38:07,512 - src.application.services.visualization_retry_manager - DEBUG - [RETRY:chabane.abdelkarim@gmail.com] State reset
+2026-02-08 08:38:07,512 - src.application.services.visualization_retry_manager - DEBUG - [RETRY:chabane.abdelkarim@gmail.com] Publishing final: 'La distribution des types de carburant montre que les trois types (Diesel, Petrol, Electric) sont pr...'
+2026-02-08 08:38:07,513 - src.application.services.messaging_service - DEBUG - Stream terminé pour chabane.abdelkarim@gmail.com
+2026-02-08 08:38:07,513 - src.application.services.visualization_retry_manager - DEBUG - [RETRY:chabane.abdelkarim@gmail.com] Stream completed
+2026-02-08 08:38:07,513 - src.application.data_analysis_agent - INFO - [AGENT:chabane.abdelkarim@gmail.com] Request completed after 1 run(s)
+2026-02-08 08:40:19,693 - src.application.data_analysis_agent - INFO - [AGENT:chabane.abdelkarim@gmail.com] New request: - "Y a-t-il une corrélation entre la taille du mot...
+2026-02-08 08:40:19,695 - src.application.services.visualization_retry_manager - DEBUG - [RETRY:chabane.abdelkarim@gmail.com] Request started
+2026-02-08 08:40:19,695 - src.application.data_analysis_agent - DEBUG - [AGENT:chabane.abdelkarim@gmail.com] Starting run #1, history_len=0, prompt_len=67
+2026-02-08 08:40:19,700 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] Processing node: UserPromptNode
+2026-02-08 08:40:19,700 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] Unknown node type: UserPromptNode
+2026-02-08 08:40:19,701 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] Processing node: ModelRequestNode
+2026-02-08 08:40:23,358 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ModelRequest stream finished, 197 events processed
+2026-02-08 08:40:23,358 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ModelRequest done, buffer_len=0
+2026-02-08 08:40:23,360 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] Processing node: CallToolsNode
+2026-02-08 08:40:23,360 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ToolCall START: query_data
+2026-02-08 08:40:23,402 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ToolCall RESULT: type=tool_call_result
+2026-02-08 08:40:23,403 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ToolCalls done, buffer reset
+2026-02-08 08:40:23,404 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] Processing node: ModelRequestNode
+2026-02-08 08:40:25,367 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ModelRequest stream finished, 53 events processed
+2026-02-08 08:40:25,367 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ModelRequest done, buffer_len=0
+2026-02-08 08:40:25,368 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] Processing node: CallToolsNode
+2026-02-08 08:40:25,368 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ToolCall START: visualize
+2026-02-08 08:40:25,385 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ToolCall RESULT: type=tool_call_result
+2026-02-08 08:40:25,386 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ToolCalls done, buffer reset
+2026-02-08 08:40:25,386 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] Processing node: ModelRequestNode
+2026-02-08 08:40:27,207 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ModelRequest stream finished, 43 events processed
+2026-02-08 08:40:27,207 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ModelRequest done, buffer_len=0
+2026-02-08 08:40:27,207 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] Processing node: CallToolsNode
+2026-02-08 08:40:27,208 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ToolCall START: visualize
+2026-02-08 08:40:27,257 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ToolCall RESULT: type=plotly
+2026-02-08 08:40:27,257 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] Visual output detected!
+2026-02-08 08:40:27,257 - src.application.services.visualization_retry_manager - DEBUG - [RETRY:chabane.abdelkarim@gmail.com] Visual recorded
+2026-02-08 08:40:27,259 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ToolCalls done, buffer reset
+2026-02-08 08:40:27,260 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] Processing node: ModelRequestNode
+2026-02-08 08:40:29,838 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ModelRequest stream finished, 106 events processed
+2026-02-08 08:40:29,839 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ModelRequest done, buffer_len=177
+2026-02-08 08:40:29,840 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] Processing node: CallToolsNode
+2026-02-08 08:40:29,840 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ToolCalls done, buffer reset
+2026-02-08 08:40:29,840 - src.application.data_analysis_agent - DEBUG - [AGENT:chabane.abdelkarim@gmail.com] Run #1 ended
+2026-02-08 08:40:29,840 - src.application.services.visualization_retry_manager - DEBUG - [RETRY:chabane.abdelkarim@gmail.com] SUCCESS: visual produced
+2026-02-08 08:40:29,840 - src.application.services.visualization_retry_manager - DEBUG - [RETRY:chabane.abdelkarim@gmail.com] State reset
+2026-02-08 08:40:29,840 - src.application.services.visualization_retry_manager - DEBUG - [RETRY:chabane.abdelkarim@gmail.com] Publishing final: 'Il y a une corrélation positive entre la taille du moteur et le prix des voitures, ce qui signifie q...'
+2026-02-08 08:40:29,842 - src.application.services.messaging_service - DEBUG - Stream terminé pour chabane.abdelkarim@gmail.com
+2026-02-08 08:40:29,842 - src.application.services.visualization_retry_manager - DEBUG - [RETRY:chabane.abdelkarim@gmail.com] Stream completed
+2026-02-08 08:40:29,842 - src.application.data_analysis_agent - INFO - [AGENT:chabane.abdelkarim@gmail.com] Request completed after 1 run(s)
+2026-02-08 08:44:10,016 - src.application.data_analysis_agent - INFO - [AGENT:chabane.abdelkarim@gmail.com] New request: - "Y a-t-il une corrélation entre la taille du mot...
+2026-02-08 08:44:10,018 - src.application.services.visualization_retry_manager - DEBUG - [RETRY:chabane.abdelkarim@gmail.com] Request started
+2026-02-08 08:44:10,018 - src.application.data_analysis_agent - DEBUG - [AGENT:chabane.abdelkarim@gmail.com] Starting run #1, history_len=0, prompt_len=67
+2026-02-08 08:44:10,021 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] Processing node: UserPromptNode
+2026-02-08 08:44:10,021 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] Unknown node type: UserPromptNode
+2026-02-08 08:44:10,021 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] Processing node: ModelRequestNode
+2026-02-08 08:44:13,058 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ModelRequest stream finished, 180 events processed
+2026-02-08 08:44:13,059 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ModelRequest done, buffer_len=0
+2026-02-08 08:44:13,059 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] Processing node: CallToolsNode
+2026-02-08 08:44:13,060 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ToolCall START: query_data
+2026-02-08 08:44:13,110 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ToolCall RESULT: type=tool_call_result
+2026-02-08 08:44:13,111 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ToolCalls done, buffer reset
+2026-02-08 08:44:13,111 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] Processing node: ModelRequestNode
+2026-02-08 08:44:14,777 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ModelRequest stream finished, 71 events processed
+2026-02-08 08:44:14,778 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ModelRequest done, buffer_len=0
+2026-02-08 08:44:14,779 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] Processing node: CallToolsNode
+2026-02-08 08:44:14,779 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ToolCall START: query_data
+2026-02-08 08:44:14,811 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ToolCall RESULT: type=tool_call_result
+2026-02-08 08:44:14,812 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ToolCalls done, buffer reset
+2026-02-08 08:44:14,813 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] Processing node: ModelRequestNode
+2026-02-08 08:44:17,465 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ModelRequest stream finished, 90 events processed
+2026-02-08 08:44:17,466 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ModelRequest done, buffer_len=0
+2026-02-08 08:44:17,467 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] Processing node: CallToolsNode
+2026-02-08 08:44:17,467 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ToolCall START: visualize
+2026-02-08 08:44:17,523 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ToolCall RESULT: type=plotly
+2026-02-08 08:44:17,523 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] Visual output detected!
+2026-02-08 08:44:17,523 - src.application.services.visualization_retry_manager - DEBUG - [RETRY:chabane.abdelkarim@gmail.com] Visual recorded
+2026-02-08 08:44:17,526 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ToolCalls done, buffer reset
+2026-02-08 08:44:17,526 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] Processing node: ModelRequestNode
+2026-02-08 08:44:20,176 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ModelRequest stream finished, 122 events processed
+2026-02-08 08:44:20,176 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ModelRequest done, buffer_len=284
+2026-02-08 08:44:20,177 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] Processing node: CallToolsNode
+2026-02-08 08:44:20,177 - src.application.services.stream_processor - DEBUG - [STREAM:chabane.abdelkarim@gmail.com] ToolCalls done, buffer reset
+2026-02-08 08:44:20,177 - src.application.data_analysis_agent - DEBUG - [AGENT:chabane.abdelkarim@gmail.com] Run #1 ended
+2026-02-08 08:44:20,177 - src.application.services.visualization_retry_manager - DEBUG - [RETRY:chabane.abdelkarim@gmail.com] SUCCESS: visual produced
+2026-02-08 08:44:20,177 - src.application.services.visualization_retry_manager - DEBUG - [RETRY:chabane.abdelkarim@gmail.com] State reset
+2026-02-08 08:44:20,177 - src.application.services.visualization_retry_manager - DEBUG - [RETRY:chabane.abdelkarim@gmail.com] Publishing final: 'Il semble y avoir une corrélation positive entre la taille du moteur et le prix des voitures. Les vo...'
+2026-02-08 08:44:20,178 - src.application.services.messaging_service - DEBUG - Stream terminé pour chabane.abdelkarim@gmail.com
+2026-02-08 08:44:20,178 - src.application.services.visualization_retry_manager - DEBUG - [RETRY:chabane.abdelkarim@gmail.com] Stream completed
+2026-02-08 08:44:20,179 - src.application.data_analysis_agent - INFO - [AGENT:chabane.abdelkarim@gmail.com] Request completed after 1 run(s)
